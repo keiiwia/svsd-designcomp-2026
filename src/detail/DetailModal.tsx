@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
 import { useStore } from '../store'
 import { Avatar, AvatarStack, Icon } from '../components/ui'
 import { users, KEIIWIA_BECAUSE, OWN_TRAIL } from '../data/seed'
 import { fmtTime } from '../lib/geometry'
 import { ThoughtThread } from '../panels/Sidebar'
 import { PeekCard } from '../components/PeekCard'
+import { spring, useMotion } from '../lib/motion'
 import type { Step } from '../types'
 
 
@@ -94,6 +95,7 @@ function Detail({ stepId }: { stepId: string }) {
   const startWalk = useStore((s) => s.startWalk)
   const [val, setVal] = useState('')
   const [playing, setPlaying] = useState(true)
+  const mo = useMotion()
   const owner = users[trail.ownerId]
   const isVideo = save.medium === 'video' || save.medium === 'film'
   const duration = parseDuration(save.duration)
@@ -148,7 +150,7 @@ function Detail({ stepId }: { stepId: string }) {
       <div className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]" onClick={() => close(null)} onPointerDown={(e) => e.stopPropagation()} />
       <motion.div
         initial={{ y: 24, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 16, scale: 0.98 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+        transition={spring(mo.modalOpen)}
         className="absolute left-[52px] right-[52px] top-[52px] bottom-[52px] bg-white rounded-[28px] shadow-modal overflow-hidden flex"
         onPointerDown={(e) => e.stopPropagation()}
       >
@@ -159,7 +161,7 @@ function Detail({ stepId }: { stepId: string }) {
               <video src={save.video} poster={save.thumb} className="w-full h-full object-cover" autoPlay muted loop playsInline />
             ) : save.thumb ? (
               <img src={save.thumb} alt="" className="w-full h-full object-cover"
-                style={{ maxHeight: 440, animation: isVideo ? 'kenburns 40s ease-in-out infinite alternate' : undefined, animationPlayState: playing ? 'running' : 'paused' }} />
+                style={{ maxHeight: 440, animation: isVideo ? `kenburns ${mo.kenBurns}s ease-in-out infinite alternate` : undefined, animationPlayState: playing ? 'running' : 'paused' }} />
             ) : (
               <div className="w-full h-[300px] flex items-center justify-center text-ink-3 font-serif italic text-[26px] px-10 text-center">“{save.thought}”</div>
             )}

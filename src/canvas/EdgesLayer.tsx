@@ -1,9 +1,10 @@
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { Avatar } from '../components/ui'
 import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geometry'
 import type { Connection, Thought } from '../types'
 import { useDrag } from './drag'
+import { useMotion } from '../lib/motion'
 
 function cubic(a: Pt, c1: Pt, c2: Pt, b: Pt, t: number): Pt {
   const mt = 1 - t
@@ -33,6 +34,7 @@ export function EdgesLayer({
   const drag = useDrag((s) => s.drag)
 
   const thoughts = useStore((s) => s.thoughts)
+  const mo = useMotion()
   const rectOf = (id: string) => {
     const st = steps[id]
     if (st) return stepRect(st, trails[st.trailId], saves[st.saveId], sizes)
@@ -79,7 +81,7 @@ export function EdgesLayer({
       lines.push(
         <g key={c.id}>
           <motion.line x1={start.x} y1={start.y} x2={bTarget.x} y2={bTarget.y} stroke="#c9c5be" strokeWidth={1}
-            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, ease: 'easeInOut' }} />
+            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.edgeDraw, ease: 'easeInOut' }} />
           <circle cx={start.x} cy={start.y} r={3} fill="white" stroke="#aba59c" />
           {c.anchor ? (
             <circle cx={bTarget.x} cy={bTarget.y} r={6} fill="rgba(255,255,255,0.7)" stroke="#aba59c" strokeWidth={1.2} />
@@ -89,7 +91,7 @@ export function EdgesLayer({
         </g>,
       )
       if (showChip) chips.push(
-        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.25 }}
+        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: mo.chipDelay, duration: 0.25 }}
           className="absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card max-w-[150px] line-clamp-3 leading-[14px]"
           style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
           {c.because}
@@ -105,13 +107,13 @@ export function EdgesLayer({
       lines.push(
         <g key={c.id}>
           <motion.path d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke="#4a62c4" strokeWidth={1.5} fill="none"
-            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.7, ease: 'easeInOut' }} />
+            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.crossDraw, ease: 'easeInOut' }} />
           <circle cx={s.x} cy={s.y} r={3} fill="white" stroke="#4a62c4" />
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
       )
       if (showChip) chips.push(
-        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45, duration: 0.25 }}
+        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: mo.chipDelay + 0.15, duration: 0.25 }}
           className="absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card whitespace-nowrap max-w-[260px] overflow-hidden text-ellipsis"
           style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
           <Avatar userId={c.authorId} size={14} /> <span className="truncate">{c.because}</span>

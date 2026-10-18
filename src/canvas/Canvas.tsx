@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type PointerEvent as RPE } from 'react'
-import { AnimatePresence, animate, motion } from 'framer-motion'
+import { AnimatePresence, animate, motion } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { useDrag, isOverCanvas, stepAtClient } from './drag'
 import { CanvasCtx, useCanvasApi, type CanvasApi } from './CanvasContext'
@@ -12,6 +12,7 @@ import { EdgesLayer } from './EdgesLayer'
 import { BecausePopover } from './BecausePopover'
 import { anchorPoint, estimateSize, stepRect, type Pt } from '../lib/geometry'
 import { nearbyLayout, users, WELCOME } from '../data/seed'
+import { useMotion } from '../lib/motion'
 
 const DESIGN = { w: 1440, h: 1024 }
 
@@ -59,8 +60,9 @@ export function Canvas() {
 
   const animateTo = useCallback((target: { x: number; y: number; scale: number }) => {
     const from = useStore.getState().camera
+    const { duration, ease } = useMotion.getState().camera
     animate(0, 1, {
-      duration: 0.55, ease: [0.3, 0.7, 0.2, 1],
+      duration, ease,
       onUpdate: (k) => setCamera({ x: from.x + (target.x - from.x) * k, y: from.y + (target.y - from.y) * k, scale: from.scale + (target.scale - from.scale) * k }),
     })
   }, [setCamera])

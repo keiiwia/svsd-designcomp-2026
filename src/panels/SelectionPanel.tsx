@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
+import { useMotion } from '../lib/motion'
 import { useStore } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import { users, KEIIWIA_BECAUSE } from '../data/seed'
@@ -21,7 +22,7 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
     <motion.div
       data-panel
       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
-      transition={{ duration: 0.18 }}
+      transition={{ duration: useMotion.getState().panelFade }}
       className="absolute right-6 top-6 bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-5 flex flex-col gap-4 max-h-[calc(100%-140px)] overflow-y-auto"
       style={{ width: 360, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}

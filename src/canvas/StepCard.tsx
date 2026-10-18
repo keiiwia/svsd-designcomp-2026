@@ -1,10 +1,11 @@
 import { useLayoutEffect, useRef, useState, type PointerEvent as RPE } from 'react'
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { useDrag } from './drag'
 import { Icon } from '../components/ui'
 import { PeekCard } from '../components/PeekCard'
+import { spring, useMotion } from '../lib/motion'
 import type { Save, Step, Trail } from '../types'
 import { stepAbs } from '../lib/geometry'
 
@@ -86,6 +87,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
   const startWalk = useStore((s) => s.startWalk)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
   const [peek, setPeekLocal] = useState(false)
+  const mo = useMotion()
   const peekTimer = useRef<number | null>(null)
   const canPeek = !own && expanded && !selected
   const onEnter = () => { if (!canPeek) return; peekTimer.current = window.setTimeout(() => setPeekLocal(true), 320) }
@@ -106,7 +108,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       ref={ref}
       initial={{ opacity: 0, scale: 0.94, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 30, delay: order * 0.06 }}
+      transition={{ ...spring(mo.cardDrop), delay: order * mo.cardStagger }}
       data-step-id={step.id}
       data-connectable={ghost || own || foreign ? 'true' : 'false'}
       onPointerDown={onPointerDown}

@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'motion/react'
 import { useStore, type WalkState } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import { users, KEIIWIA_BECAUSE, OWN_TRAIL } from '../data/seed'
+import { useMotion } from '../lib/motion'
 
 /**
  * Walk mode: you read a trail one "because" at a time. Words come first; the
@@ -26,6 +27,7 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
   const branchFromStep = useStore((s) => s.branchFromStep)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
   const setBranchState = useStore((s) => s.setBranchState)
+  const mo = useMotion()
 
   const steps = useMemo(() => Object.values(allSteps).filter((st) => st.trailId === walk.trailId).sort((a, b) => a.index - b.index), [allSteps, walk.trailId])
   const owner = users[trail.ownerId]
@@ -83,10 +85,10 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={pageKey}
-            initial={{ opacity: 0, x: 60, rotateY: -10 }}
+            initial={{ opacity: 0, x: mo.pageSlide, rotateY: -mo.pageTilt }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
-            exit={{ opacity: 0, x: -60, rotateY: 10 }}
-            transition={{ duration: 0.42, ease: [0.3, 0.7, 0.2, 1] }}
+            exit={{ opacity: 0, x: -mo.pageSlide, rotateY: mo.pageTilt }}
+            transition={{ duration: mo.pageTurn.duration, ease: mo.pageTurn.ease }}
             className="w-full max-w-[760px] flex flex-col items-start gap-7"
             style={{ transformOrigin: 'left center' }}
           >

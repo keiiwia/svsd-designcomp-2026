@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useStore } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import type { Rect } from '../lib/geometry'

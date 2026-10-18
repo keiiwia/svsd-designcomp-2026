@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, type PointerEvent as RPE } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { useDrag } from './drag'
 import { Avatar } from '../components/ui'
 import { users } from '../data/seed'
 import type { Thought, Trail } from '../types'
+import { spring, useMotion } from '../lib/motion'
 
 export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -19,6 +20,7 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   const fanOutStack = useStore((s) => s.fanOutStack)
   const stackSize = useStore((s) => (note.stackId ? Object.values(s.thoughts).filter((t) => t.stackId === note.stackId).length : 0))
   const stackTop = useStore((s) => (note.stackId ? Object.values(s.thoughts).filter((t) => t.stackId === note.stackId).slice(-1)[0]?.id === note.id : false))
+  const mo = useMotion()
   const u = users[note.authorId]
   const pos = { x: trail.origin.x + note.onCanvas!.x, y: trail.origin.y + note.onCanvas!.y }
 
@@ -54,7 +56,7 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
       ref={ref}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+      transition={spring(mo.cardDrop)}
       onPointerDown={onPointerDown}
       onDoubleClick={(e) => { e.stopPropagation(); if (note.authorId === 'you') setEditingNote(note.id) }}
       className="absolute rounded-[10px] px-3.5 py-3 flex flex-col gap-2 cursor-grab active:cursor-grabbing"

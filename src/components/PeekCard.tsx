@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { Icon } from './ui'
 import { useStore } from '../store'
 import { users, KEIIWIA_BECAUSE } from '../data/seed'

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useStore } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import type { Pt } from '../lib/geometry'
 import { OWN_TRAIL } from '../data/seed'
+import { spring, useMotion } from '../lib/motion'
 
 export function BecausePopover({ pos }: { pos: Pt }) {
   const draft = useStore((s) => s.draft)!
@@ -15,6 +16,7 @@ export function BecausePopover({ pos }: { pos: Pt }) {
   const steps = useStore((s) => s.steps)
   const placed = useStore((s) => s.placed)
   const [menu, setMenu] = useState(false)
+  const mo = useMotion()
   const ta = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => { ta.current?.focus() }, [])
@@ -36,7 +38,7 @@ export function BecausePopover({ pos }: { pos: Pt }) {
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+      transition={spring(mo.because)}
       className="absolute w-[400px] rounded-[20px] bg-blue text-white px-5 py-[18px] flex flex-col gap-3.5 shadow-because"
       style={{ left: pos.x, top: pos.y, zIndex: 60 }}
       onPointerDown={(e) => e.stopPropagation()}
