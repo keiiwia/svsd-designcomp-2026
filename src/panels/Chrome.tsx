@@ -41,7 +41,13 @@ export function Toolbar() {
   const setTool = useStore((s) => s.setTool)
   const layers = useStore((s) => s.ui.layers)
   const toggleLayer = useStore((s) => s.toggleLayer)
-  const fitAll = () => useCanvasApi.getState().api?.fitAll()
+  const overview = useStore((s) => s.ui.overview)
+  const setOverview = useStore((s) => s.setOverview)
+  const toggleZoom = () => {
+    const api = useCanvasApi.getState().api
+    if (!api) return
+    if (overview) { api.focusOwn(); setOverview(false) } else { api.fitAll(); setOverview(true) }
+  }
   const chips: { k: keyof typeof layers; label: string; color: string }[] = [
     { k: 'reference', label: 'Reference', color: '#aba59c' },
     { k: 'yours', label: 'Yours', color: '#c47a52' },
@@ -64,7 +70,7 @@ export function Toolbar() {
         </button>
       ))}
       <span className="w-px h-6 bg-line mx-1" />
-      <button onClick={fitAll} className="text-[13px] font-medium text-ink-2 px-1 hover:text-ink">Zoom out</button>
+      <button onClick={toggleZoom} className="text-[13px] font-medium text-ink-2 px-1 hover:text-ink whitespace-nowrap">{overview ? 'Zoom in' : 'Zoom out'}</button>
     </div>
   )
 }

@@ -83,7 +83,7 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
       {/* expanded controls */}
       {state === 'expanded' && (
         <div className="absolute right-4 top-3 flex gap-2" style={{ zIndex: 2 }}>
-          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); useStore.getState().setTool('walk'); useStore.getState().openDetail(Object.values(useStore.getState().steps).find((s) => s.trailId === trail.id && s.index === 1)?.id ?? null) }}
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); useStore.getState().startWalk(trail.id, 1) }}
             className="flex items-center gap-1.5 bg-white border border-line rounded-full px-3 py-1.5 text-[11px] font-medium text-ink-2 hover:bg-paper">
             <Icon name="walk" size={12} /> Walk {owner.name === 'keiiwia' ? 'her' : 'their'} trail
           </button>

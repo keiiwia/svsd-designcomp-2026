@@ -13,6 +13,8 @@ export interface Camera { x: number; y: number; scale: number }
 
 export interface Layers { reference: boolean; yours: boolean; everyone: boolean }
 
+export interface WalkState { trailId: string; index: number; phase: 'because' | 'reference' }
+
 export interface UIState {
   tool: Tool
   selectedStepId: string | null
@@ -22,6 +24,8 @@ export interface UIState {
   editingTitle: boolean
   connectHintStepId: string | null
   peekStepId: string | null
+  walk: WalkState | null
+  overview: boolean
 }
 
 export interface TrailsState {
@@ -67,6 +71,11 @@ export interface TrailsState {
   branchFromStep: (stepId: string) => void
   connectSaveToStep: (saveId: string, stepId: string) => void
   toggleLayer: (k: keyof Layers) => void
+  startWalk: (trailId: string, index?: number) => void
+  walkNext: () => void
+  walkPrev: () => void
+  endWalk: () => void
+  setOverview: (v: boolean) => void
   reset: () => void
 }
 
@@ -79,6 +88,8 @@ const initialUI: UIState = {
   editingTitle: false,
   connectHintStepId: null,
   peekStepId: null,
+  walk: null,
+  overview: false,
 }
 
 export function freshState() {
@@ -253,6 +264,27 @@ export const useStore = create<TrailsState>()(
       },
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
+      startWalk: (trailId, index = 1) =>
+        set((s) => ({ ui: { ...s.ui, walk: { trailId, index, phase: index <= 1 ? 'reference' : 'because' }, detailStepId: null, peekStepId: null, selectedStepId: null, tool: 'walk' } })),
+      walkNext: () =>
+        set((s) => {
+          const w = s.ui.walk
+          if (!w) return {}
+          const count = Object.values(s.steps).filter((st) => st.trailId === w.trailId).length
+          if (w.phase === 'because') return { ui: { ...s.ui, walk: { ...w, phase: 'reference' } } }
+          if (w.index >= count) return { ui: { ...s.ui, walk: { ...w, index: count + 1, phase: 'reference' } } }
+          return { ui: { ...s.ui, walk: { trailId: w.trailId, index: w.index + 1, phase: 'because' } } }
+        }),
+      walkPrev: () =>
+        set((s) => {
+          const w = s.ui.walk
+          if (!w) return {}
+          if (w.phase === 'reference' && w.index > 1) return { ui: { ...s.ui, walk: { ...w, phase: 'because', index: Math.min(w.index, Object.values(s.steps).filter((st) => st.trailId === w.trailId).length) } } }
+          if (w.index > 1) return { ui: { ...s.ui, walk: { ...w, index: w.index - 1, phase: 'reference' } } }
+          return {}
+        }),
+      endWalk: () => set((s) => ({ ui: { ...s.ui, walk: null, tool: 'add' } })),
+      setOverview: (overview) => set((s) => ({ ui: { ...s.ui, overview } })),
       reset: () => set({ ...freshState() }),
     }),
     {

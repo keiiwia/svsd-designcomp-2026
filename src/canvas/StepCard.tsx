@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, type PointerEvent as RPE } from 'react'
+import { useLayoutEffect, useRef, useState, type PointerEvent as RPE } from 'react'
 import clsx from 'clsx'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, useSizes } from '../store'
 import { useDrag } from './drag'
 import { Icon } from '../components/ui'
+import { PeekCard } from '../components/PeekCard'
 import type { Save, Step, Trail } from '../types'
 import { stepAbs } from '../lib/geometry'
 
@@ -82,10 +83,19 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
 
   const branchFromStep = useStore((s) => s.branchFromStep)
   const addNote = useStore((s) => s.addNote)
+  const startWalk = useStore((s) => s.startWalk)
+  const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
+  const [peek, setPeekLocal] = useState(false)
+  const peekTimer = useRef<number | null>(null)
+  const canPeek = !own && expanded && !selected
+  const onEnter = () => { if (!canPeek) return; peekTimer.current = window.setTimeout(() => setPeekLocal(true), 320) }
+  const onLeave = () => { if (peekTimer.current) window.clearTimeout(peekTimer.current); setPeekLocal(false) }
   const onClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (drag.kind === 'step' && drag.moved) return
+    if (tool === 'walk') { startWalk(trail.id, step.index); return }
     if (!own) {
+      setPeekLocal(false)
       if (expanded) selectStep(selected ? null : step.id)
       else openDetail(step.id)
     }
@@ -101,6 +111,8 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       data-connectable={ghost || own || foreign ? 'true' : 'false'}
       onPointerDown={onPointerDown}
       onClick={onClick}
+      onPointerEnter={onEnter}
+      onPointerLeave={onLeave}
       className={clsx(
         'absolute group flex flex-col bg-white overflow-visible rounded-[13px] border transition-shadow',
         inDraft || connectHover ? 'border-blue border-2 shadow-focus' : selected ? 'border-ink border-[1.4px] shadow-card' : 'border-line shadow-card',
@@ -123,6 +135,12 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
           <span className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center text-[9px] font-semibold text-keiiwia border border-white shadow-sm">K</span>
         </span>
       )}
+      <AnimatePresence>
+        {peek && canPeek && (
+          <PeekCard step={step} className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] z-[45]"
+            onConnect={() => { setPeekLocal(false); makeConnectionFrom(step.id) }} onWalk={() => { setPeekLocal(false); startWalk(trail.id, step.index) }} />
+        )}
+      </AnimatePresence>
       {selected && !own && expanded && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] flex items-center gap-1 bg-white border border-line rounded-[12px] shadow-card-lift p-1 whitespace-nowrap" style={{ zIndex: 45 }}
           onPointerDown={(e) => e.stopPropagation()}>
@@ -130,7 +148,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink-2 hover:bg-paper"><Icon name="thought" size={12} /> Add a thought</button>
           <button onClick={(e) => { e.stopPropagation(); branchFromStep(step.id) }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink bg-frame"><Icon name="branch" size={12} /> Branch from here</button>
-          <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }}
+          <button onClick={(e) => { e.stopPropagation(); startWalk(trail.id, step.index) }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink-2 hover:bg-paper"><Icon name="walk" size={12} /> Walk from here</button>
         </div>
       )}

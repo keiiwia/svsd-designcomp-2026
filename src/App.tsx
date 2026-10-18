@@ -3,6 +3,7 @@ import { Canvas } from './canvas/Canvas'
 import { FilePanel, SearchBar, Toolbar } from './panels/Chrome'
 import { Sidebar } from './panels/Sidebar'
 import { DetailModal } from './detail/DetailModal'
+import { WalkMode } from './detail/WalkMode'
 import { loadScene } from './scenes'
 import { useStore } from './store'
 
@@ -13,7 +14,8 @@ export default function App() {
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
       const st = useStore.getState()
       if (e.key === 'Escape') {
-        if (st.draft) st.cancelDraft()
+        if (st.ui.walk) st.endWalk()
+        else if (st.draft) st.cancelDraft()
         else if (st.ui.detailStepId) st.openDetail(null)
         else if (st.ui.peekStepId) st.setPeek(null)
         else st.selectStep(null)
@@ -38,6 +40,7 @@ export default function App() {
       <Sidebar />
       <Toolbar />
       <DetailModal />
+      <WalkMode />
     </div>
   )
 }

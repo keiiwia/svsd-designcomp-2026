@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type PointerEvent as RPE, type WheelEvent as RWE } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, animate, motion } from 'framer-motion'
 import { useStore, useSizes } from '../store'
 import { useDrag, isOverCanvas, stepAtClient } from './drag'
 import { CanvasCtx, useCanvasApi, type CanvasApi } from './CanvasContext'
@@ -56,27 +56,37 @@ export function Canvas() {
     return () => ro.disconnect()
   }, [setCamera])
 
-  const fitAll = useCallback(() => {
+  const animateTo = useCallback((target: { x: number; y: number; scale: number }) => {
+    const from = useStore.getState().camera
+    animate(0, 1, {
+      duration: 0.55, ease: [0.3, 0.7, 0.2, 1],
+      onUpdate: (k) => setCamera({ x: from.x + (target.x - from.x) * k, y: from.y + (target.y - from.y) * k, scale: from.scale + (target.scale - from.scale) * k }),
+    })
+  }, [setCamera])
+
+  const fitRects = useCallback((rects: { x: number; y: number; w: number; h: number }[], maxScale = 1) => {
     const el = ref.current
-    if (!el) return
+    if (!el || rects.length === 0) return
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-    for (const f of vis.frames) {
-      minX = Math.min(minX, f.rect.x); minY = Math.min(minY, f.rect.y)
-      maxX = Math.max(maxX, f.rect.x + f.rect.w); maxY = Math.max(maxY, f.rect.y + f.rect.h)
+    for (const r of rects) {
+      minX = Math.min(minX, r.x); minY = Math.min(minY, r.y)
+      maxX = Math.max(maxX, r.x + r.w); maxY = Math.max(maxY, r.y + r.h)
     }
-    if (!isFinite(minX)) return
     const pad = 120
     const r = el.getBoundingClientRect()
     const availW = r.width - 420, availH = r.height - 160
-    const scale = Math.min(1, availW / (maxX - minX + pad * 2), availH / (maxY - minY + pad * 2))
-    setCamera({
+    const scale = Math.min(maxScale, availW / (maxX - minX + pad * 2), availH / (maxY - minY + pad * 2))
+    animateTo({
       x: Math.round((availW - (maxX - minX) * scale) / 2 - minX * scale + 24),
       y: Math.round((availH - (maxY - minY) * scale) / 2 - minY * scale + 90),
       scale,
     })
-  }, [vis.frames, setCamera])
+  }, [animateTo])
 
-  const api = useMemo<CanvasApi>(() => ({ toCanvas, fitAll }), [toCanvas, fitAll])
+  const fitAll = useCallback(() => fitRects(vis.frames.map((f) => f.rect)), [vis.frames, fitRects])
+  const focusOwn = useCallback(() => fitRects([vis.ownFrame.rect], 1), [vis.ownFrame.rect, fitRects])
+
+  const api = useMemo<CanvasApi>(() => ({ toCanvas, fitAll, focusOwn }), [toCanvas, fitAll, focusOwn])
   const publish = useCanvasApi((s) => s.set)
   useEffect(() => { publish(api) }, [api, publish])
 
@@ -137,6 +147,7 @@ export function Canvas() {
 
   const onBgPointerDown = (e: RPE) => {
     if (e.button !== 0) return
+    if (useStore.getState().ui.overview) useStore.getState().setOverview(false)
     setDrag({ kind: 'pan', start: { x: e.clientX, y: e.clientY }, camStart: { x: camera.x, y: camera.y } })
     const st = useStore.getState()
     st.selectStep(null)
@@ -245,6 +256,7 @@ export function Canvas() {
             const f = vis.frames.find((fr) => fr.trail.id === st.trailId)
             if (!f || (f.state !== 'own' && f.state !== 'expanded')) return null
             if (!layers.yours && n.authorId === 'you') return null
+            if (!layers.everyone && n.authorId !== 'you') return null
             return <NoteCard key={n.id} note={n} trail={trails[st.trailId]} />
           })}
 
@@ -262,7 +274,7 @@ export function Canvas() {
             return <NearbyCard key={n.id} step={st} save={saves[st.saveId]} trail={trails[st.trailId]} pos={n.pos} order={i} />
           })}
 
-          <EdgesLayer connections={vis.visibleConnections} nearby={nearby} ownFrame={ownFrame}
+          <EdgesLayer connections={layers.reference ? vis.visibleConnections : []} nearby={nearby} ownFrame={ownFrame} layers={layers}
             popoverTop={popover ? popover.attach : null} toCanvas={toCanvas} />
 
           {draft && popover && <BecausePopover pos={popover} />}

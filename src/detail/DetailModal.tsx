@@ -6,6 +6,7 @@ import { Avatar, AvatarStack, Icon } from '../components/ui'
 import { users, KEIIWIA_BECAUSE, OWN_TRAIL } from '../data/seed'
 import { fmtTime } from '../lib/geometry'
 import { ThoughtThread } from '../panels/Sidebar'
+import { PeekCard } from '../components/PeekCard'
 import type { Step } from '../types'
 
 
@@ -19,6 +20,7 @@ interface StripCtx {
   onLeave: () => void
   onClick: (s: Step) => void
   onConnect: (id: string) => void
+  onWalk: (s: Step) => void
 }
 
 function Crumb({ s, current, ctx }: { s: Step; current?: boolean; ctx: StripCtx }) {
@@ -51,18 +53,7 @@ function StepMini({ s, current, who, ctx }: { s: Step; current?: boolean; who: s
         </button>
         <AnimatePresence>
           {ctx.peek === s.id && (
-            <motion.div
-              initial={{ opacity: 0, y: 6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: 0.16 }}
-              className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] w-[200px] bg-white rounded-[12px] shadow-card-lift border border-line p-3 flex flex-col gap-2 text-left"
-              style={{ zIndex: 5 }}
-            >
-              <p className="text-[10px] text-blue">because</p>
-              <p className="text-[12px] text-ink">“{conn?.because ?? sv.thought}”</p>
-              <p className="text-[11px] text-ink-2 bg-paper rounded-[8px] p-2">{sv.thought}</p>
-              <p className="text-[10px] text-ink-3 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ background: ctx.owner.color }} /> {ctx.owner.name}’s trail · step {s.index}</p>
-              <button onClick={() => ctx.onConnect(s.id)} className="w-fit flex items-center gap-1.5 bg-ink text-white rounded-full px-2.5 py-1.5 text-[11px] font-medium"><Icon name="connect" size={11} /> Make a connection</button>
-            </motion.div>
+            <PeekCard step={s} onConnect={() => ctx.onConnect(s.id)} onWalk={() => ctx.onWalk(s)} className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] z-[5]" />
           )}
         </AnimatePresence>
       </div>
@@ -99,6 +90,7 @@ function Detail({ stepId }: { stepId: string }) {
   const addThought = useStore((s) => s.addThought)
   const peek = useStore((s) => s.ui.peekStepId)
   const setPeek = useStore((s) => s.setPeek)
+  const startWalk = useStore((s) => s.startWalk)
   const [val, setVal] = useState('')
   const [playing, setPlaying] = useState(true)
   const owner = users[trail.ownerId]
@@ -147,6 +139,7 @@ function Detail({ stepId }: { stepId: string }) {
       setPeek(pinnedPeek.current ? st.id : null)
     },
     onConnect: (id) => { pinnedPeek.current = false; setPeek(null); makeConnectionFrom(id) },
+    onWalk: (st) => { pinnedPeek.current = false; startWalk(st.trailId, st.index) },
   }
 
   return (

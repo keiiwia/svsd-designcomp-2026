@@ -63,7 +63,7 @@ export function loadScene(n: number) {
 
 function fit() {
   // wait a frame so measured card sizes exist, then fit every frame into view
-  requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
+  requestAnimationFrame(() => requestAnimationFrame(() => { useCanvasApi.getState().api?.fitAll(); useStore.getState().setOverview(true) }))
 }
 
 function recenter() {

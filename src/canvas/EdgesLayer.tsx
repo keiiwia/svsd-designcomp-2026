@@ -14,13 +14,14 @@ function cubic(a: Pt, c1: Pt, c2: Pt, b: Pt, t: number): Pt {
 }
 
 export function EdgesLayer({
-  connections, nearby, ownFrame, popoverTop, toCanvas,
+  connections, nearby, ownFrame, popoverTop, toCanvas, layers,
 }: {
   connections: Connection[]
   nearby: { id: string; pos: Pt; w: number; h: number }[]
   ownFrame: Rect
   popoverTop: Pt | null
   toCanvas: (p: Pt) => Pt
+  layers: { reference: boolean; yours: boolean; everyone: boolean }
 }) {
   const steps = useStore((s) => s.steps)
   const trails = useStore((s) => s.trails)
@@ -49,6 +50,7 @@ export function EdgesLayer({
   }
 
   for (const c of connections) {
+    const showChip = c.authorId === 'you' ? layers.yours : layers.everyone
     const a = rectOf(c.fromStepId), b = rectOf(c.toStepId)
     const cross = steps[c.fromStepId].trailId !== steps[c.toStepId].trailId
     const end = anchorPoint(b, c.anchor)
@@ -69,7 +71,7 @@ export function EdgesLayer({
           )}
         </g>,
       )
-      chips.push(
+      if (showChip) chips.push(
         <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.25 }}
           className="absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card max-w-[150px] line-clamp-3 leading-[14px]"
           style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
@@ -91,7 +93,7 @@ export function EdgesLayer({
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
       )
-      chips.push(
+      if (showChip) chips.push(
         <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45, duration: 0.25 }}
           className="absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card whitespace-nowrap max-w-[260px] overflow-hidden text-ellipsis"
           style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>

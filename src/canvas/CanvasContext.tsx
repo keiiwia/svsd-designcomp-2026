@@ -5,6 +5,7 @@ import type { Pt } from '../lib/geometry'
 export interface CanvasApi {
   toCanvas: (client: Pt) => Pt
   fitAll: () => void
+  focusOwn: () => void
 }
 export const CanvasCtx = createContext<CanvasApi | null>(null)
 export const useCanvas = () => {
