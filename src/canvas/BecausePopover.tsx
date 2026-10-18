@@ -90,7 +90,7 @@ export function BecausePopover({ pos }: { pos: Pt }) {
             onClick={() => canLink && commit()}
             className={`flex items-center gap-2 rounded-full pl-4 pr-[18px] py-2.5 text-[13px] font-semibold transition-colors ${canLink ? 'bg-white text-blue' : 'bg-white/30 text-white/60 cursor-not-allowed'}`}
           >
-            <Icon name="connect" size={14} /> Link them
+            <Icon name="connect" size={14} /> Link
           </button>
 
           {menu && (

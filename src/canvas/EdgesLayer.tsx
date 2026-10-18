@@ -7,11 +7,12 @@ import type { Connection, Thought } from '../types'
 import { useDrag } from './drag'
 import { spring, useMotion } from '../lib/motion'
 
-/** A because chip: click selects it (blue), click again to rewrite. Enter saves, Escape keeps the old words. */
+/** A because chip: one click opens it for rewriting (it turns blue as you hover). Enter saves, Escape cancels. */
 function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number }) {
   const update = useStore((s) => s.updateConnection)
   const mo = useMotion()
   const [selected, setSelected] = useState(false)
+  const [hover, setHover] = useState(false)
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(because)
   const ref = useRef<HTMLTextAreaElement>(null)
@@ -26,7 +27,7 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
   }, [selected])
   const commit = () => { const t = val.trim(); if (t) update(id, t); setEditing(false); setSelected(false) }
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
-  const active = selected || editing
+  const active = selected || editing || hover
   return (
     <motion.div
       ref={box}
@@ -41,9 +42,11 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
           : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-pointer leading-[14px] overflow-hidden'}
       style={{ left: pos.x, top: pos.y, zIndex: active ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue || active ? 260 : 150, x: '-50%', y: '-50%',
         boxShadow: selected && !editing ? '0 0 0 3px rgba(74,98,196,0.25), 0 6px 16px rgba(31,26,20,0.08)' : undefined }}
-      title={editing ? undefined : selected ? 'Click again to rewrite' : because}
+      title={editing ? undefined : `${because} · click to rewrite`}
       onPointerDown={stop}
-      onClick={(e) => { stop(e); if (editing) return; if (selected) setEditing(true); else setSelected(true) }}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      onClick={(e) => { stop(e); if (editing) return; setSelected(true); setEditing(true) }}
     >
       {!editing && (blue || active) && <Avatar userId={authorId} size={14} />}
       {editing ? (
