@@ -13,7 +13,6 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
   const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId && s.steps[c.fromStepId]?.trailId === step.trailId))
   const openDetail = useStore((s) => s.openDetail)
   const selectStep = useStore((s) => s.selectStep)
-  const startWalk = useStore((s) => s.startWalk)
   const own = trail.ownerId === 'you'
   const owner = users[trail.ownerId]
   const because = stepId === 'k2' ? KEIIWIA_BECAUSE : conn?.because
@@ -48,7 +47,6 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
       </div>
       <div className="flex gap-2">
         <button onClick={() => openDetail(stepId)} className="flex items-center gap-1.5 border border-line rounded-full px-3 py-1.5 text-[11px] font-medium text-ink-2 hover:bg-paper"><Icon name="source" size={11} /> Open</button>
-        <button onClick={() => startWalk(trail.id, step.index)} className="flex items-center gap-1.5 border border-line rounded-full px-3 py-1.5 text-[11px] font-medium text-ink-2 hover:bg-paper"><Icon name="walk" size={11} /> Walk from here</button>
       </div>
       <div className="border-t border-line pt-4">
         <Conversation stepId={stepId} compact />

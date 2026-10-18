@@ -150,8 +150,6 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink-2 hover:bg-paper"><Icon name="thought" size={12} /> Add a thought</button>
           <button onClick={(e) => { e.stopPropagation(); branchFromStep(step.id) }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink bg-frame"><Icon name="branch" size={12} /> Branch from here</button>
-          <button onClick={(e) => { e.stopPropagation(); startWalk(trail.id, step.index) }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink-2 hover:bg-paper"><Icon name="walk" size={12} /> Walk from here</button>
         </div>
       )}
       {hint && (
