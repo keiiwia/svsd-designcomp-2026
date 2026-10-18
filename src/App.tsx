@@ -44,7 +44,7 @@ export default function App() {
         else st.selectStep(null)
         return
       }
-      if (e.key === '?') { setHelp((h) => !h); return }
+      if (e.key === '?' || (e.code === 'Slash' && e.shiftKey)) { setHelp((h) => !h); return }
       if (/^[0-9]$/.test(e.key)) { loadScene(e.key === '0' ? 10 : Number(e.key)); return }
       if (e.key === 'R' && e.shiftKey) { st.reset(); loadScene(1); return }
       if (e.key === 'D' && e.shiftKey && import.meta.env.DEV) { setTuner((t) => !t); return }

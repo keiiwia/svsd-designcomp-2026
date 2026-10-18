@@ -58,7 +58,7 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
             rows={3}
             className="bg-transparent outline-none text-white w-full resize-none text-[17px] leading-[24px] tracking-[-0.1px]"
           />
-          <span className="flex items-center justify-between text-[11px] text-white/60"><span>Enter saves · Esc keeps the old words</span><button onPointerDown={stop} onClick={(e) => { stop(e); commit() }} className="bg-white text-blue rounded-full px-3 py-1 text-[11px] font-semibold">Save</button></span>
+          <span className="flex items-center justify-between text-[11px] text-white/60"><span>Enter to save, Esc to cancel</span><button onPointerDown={stop} onClick={(e) => { stop(e); commit() }} className="bg-white text-blue rounded-full px-3 py-1 text-[11px] font-semibold">Save</button></span>
         </motion.div>
       ) : (
         <span className={blue || active ? 'truncate block max-w-[230px]' : 'line-clamp-3'}>{because}</span>
