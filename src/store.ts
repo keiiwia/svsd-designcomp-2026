@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type {
   Anchor, BecauseDraft, BranchState, Connection, Save, SidebarMode, Size, Step, Thought, Tool, Trail,
 } from './types'
+import { useCanvasApi } from './canvas/CanvasContext'
 import {
   allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, trails as seedTrails,
   KEIIWIA_REPLY, KEIIWIA_TRAIL, OWN_TRAIL, YOU,
@@ -58,7 +59,11 @@ export interface TrailsState {
   setBranchState: (trailId: string, s: BranchState) => void
   setSidebar: (m: SidebarMode) => void
   addThought: (stepId: string, text: string, t?: number) => void
-  addNote: (trailId: string, pos: { x: number; y: number }, text: string) => void
+  addNote: (trailId: string, pos: { x: number; y: number }, text: string) => string
+  updateNote: (id: string, text: string) => void
+  deleteNote: (id: string) => void
+  editingNoteId: string | null
+  setEditingNote: (id: string | null) => void
   branchFromStep: (stepId: string) => void
   connectSaveToStep: (saveId: string, stepId: string) => void
   toggleLayer: (k: keyof Layers) => void
@@ -205,8 +210,21 @@ export const useStore = create<TrailsState>()(
         const id = `note${s.seq}`
         // notes hang off the first step of the trail for data purposes
         const first = Object.values(s.steps).find((st) => st.trailId === trailId)
-        set({ thoughts: { ...s.thoughts, [id]: { id, stepId: first?.id ?? '', authorId: YOU, text, onCanvas: pos } }, seq: s.seq + 1 })
+        set({
+          thoughts: { ...s.thoughts, [id]: { id, stepId: first?.id ?? '', authorId: YOU, text, onCanvas: pos } },
+          seq: s.seq + 1,
+          editingNoteId: text ? null : id,
+        })
+        return id
       },
+      updateNote: (id, text) => set((s) => ({ thoughts: { ...s.thoughts, [id]: { ...s.thoughts[id], text } } })),
+      deleteNote: (id) =>
+        set((s) => {
+          const { [id]: _gone, ...rest } = s.thoughts
+          return { thoughts: rest, editingNoteId: s.editingNoteId === id ? null : s.editingNoteId }
+        }),
+      editingNoteId: null,
+      setEditingNote: (editingNoteId) => set({ editingNoteId }),
 
       branchFromStep: (stepId) => set((s) => ({ ui: { ...s.ui, sidebar: { kind: 'branchFrom', stepId }, selectedStepId: stepId } })),
 
@@ -231,6 +249,7 @@ export const useStore = create<TrailsState>()(
           draft: { fromStepId: stepId, toStepId: stepId2, text: '', attachments: [] },
           ui: { ...s.ui, sidebar: { kind: 'saves' } },
         })
+        requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
       },
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
@@ -239,7 +258,7 @@ export const useStore = create<TrailsState>()(
     {
       name: 'trails-demo-v1',
       partialize: (s) => {
-        const { draft: _d, camera: _c, ...rest } = s
+        const { draft: _d, camera: _c, editingNoteId: _e, ...rest } = s
         return rest as TrailsState
       },
     },

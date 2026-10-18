@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../store'
@@ -42,7 +42,34 @@ function Detail({ stepId }: { stepId: string }) {
   const owner = users[trail.ownerId]
   const isVideo = save.medium === 'video' || save.medium === 'film'
   const duration = parseDuration(save.duration)
-  const now = 41
+  // playhead: starts at her anchor (0:41) and runs while "playing"
+  const [t, setT] = useState(41)
+  const now = Math.round(t)
+  useEffect(() => {
+    if (!playing || !isVideo) return
+    let raf = 0, last = performance.now()
+    const tick = (ts: number) => {
+      const dt = (ts - last) / 1000; last = ts
+      setT((v) => (v + dt > duration ? 0 : v + dt))
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, isVideo, duration])
+  const scrubTo = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setT(Math.max(0, Math.min(duration, ((e.clientX - r.left) / r.width) * duration)))
+  }
+  const pinnedPeek = useRef(false)
+  const hoverTimer = useRef<number | null>(null)
+  const peekEnter = (id: string) => {
+    if (pinnedPeek.current) return
+    hoverTimer.current = window.setTimeout(() => setPeek(id), 220)
+  }
+  const peekLeave = () => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current)
+    if (!pinnedPeek.current) setPeek(null)
+  }
   const linkedToOwn = Object.values(connections).some((c) => c.authorId === 'you' && (c.toStepId === stepId || c.fromStepId === stepId))
   const incoming = Object.values(connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId)
   const because = stepId === 'k2' ? KEIIWIA_BECAUSE : incoming?.because ?? save.thought
@@ -67,9 +94,14 @@ function Detail({ stepId }: { stepId: string }) {
         {conn && (
           <span className="text-[10px] leading-[13px] text-ink-2 bg-white border border-line rounded-[6px] px-1.5 py-1 max-w-[86px] line-clamp-2">{conn.because}</span>
         )}
-        <div className="relative">
+        <div className="relative" onMouseEnter={() => !current && s.trailId !== OWN_TRAIL && peekEnter(s.id)} onMouseLeave={peekLeave}>
           <button
-            onClick={() => (current ? null : s.trailId === OWN_TRAIL ? openDetail(s.id) : setPeek(peek === s.id ? null : s.id))}
+            onClick={() => {
+              if (current) return
+              if (s.trailId === OWN_TRAIL) { openDetail(s.id); return }
+              pinnedPeek.current = !(pinnedPeek.current && peek === s.id)
+              setPeek(pinnedPeek.current ? s.id : null)
+            }}
             className={clsx('flex flex-col rounded-[10px] overflow-hidden border text-left w-[78px]', current ? 'border-blue border-[1.5px] shadow-focus' : 'border-line bg-white hover:border-ink-4')}
           >
             {sv.thumb && <img src={sv.thumb} alt="" className="w-full h-[46px] object-cover" />}
@@ -104,12 +136,13 @@ function Detail({ stepId }: { stepId: string }) {
             {save.video ? (
               <video src={save.video} poster={save.thumb} className="w-full h-full object-cover" autoPlay muted loop playsInline />
             ) : save.thumb ? (
-              <img src={save.thumb} alt="" className="w-full h-full object-cover" style={{ maxHeight: 440 }} />
+              <img src={save.thumb} alt="" className="w-full h-full object-cover"
+                style={{ maxHeight: 440, animation: isVideo ? 'kenburns 40s ease-in-out infinite alternate' : undefined, animationPlayState: playing ? 'running' : 'paused' }} />
             ) : (
               <div className="w-full h-[300px] flex items-center justify-center text-ink-3 font-serif italic text-[26px] px-10 text-center">“{save.thought}”</div>
             )}
             {/* anchored thoughts on the frame */}
-            {unlocked && isVideo && timedThoughts.filter((t) => t.t === now).map((t) => (
+            {unlocked && isVideo && timedThoughts.filter((th) => th.t! <= t && t - th.t! < 7).slice(-1).map((t) => (
               <div key={t.id} className="absolute left-[12%] top-[40%] flex items-start gap-2">
                 <div className="bg-white/95 rounded-[10px] px-3 py-2 shadow-card max-w-[240px]">
                   <p className="text-[10px] text-ink-3">{users[t.authorId].name}{t.stance ? ` · ${t.stance}` : ''}</p>
@@ -126,10 +159,10 @@ function Detail({ stepId }: { stepId: string }) {
                 {playing ? <Icon name="pause" size={14} /> : <Icon name="play" size={12} />}
               </button>
               <div className="flex flex-col gap-2 w-[520px] max-w-full">
-                <div className="relative h-[34px]">
+                <div className="relative h-[34px] cursor-pointer" onClick={scrubTo}>
                   <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-line rounded" />
-                  <div className="absolute left-0 top-1/2 h-[2px] bg-ink rounded" style={{ width: `${(now / duration) * 100}%` }} />
-                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-ink" style={{ left: `calc(${(now / duration) * 100}% - 6px)` }} />
+                  <div className="absolute left-0 top-1/2 h-[2px] bg-ink rounded" style={{ width: `${(t / duration) * 100}%` }} />
+                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-ink" style={{ left: `calc(${(t / duration) * 100}% - 6px)` }} />
                   {timedThoughts.map((t) => (
                     <span key={t.id} className="absolute top-1/2 -translate-y-[14px] -translate-x-1/2" style={{ left: `${(t.t! / duration) * 100}%` }} title={t.text}>
                       {unlocked ? <Avatar userId={t.authorId} size={14} /> : <span className="block w-1.5 h-1.5 rounded-full bg-ink-4" />}

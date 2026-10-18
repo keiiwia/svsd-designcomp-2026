@@ -250,16 +250,16 @@ export function Canvas() {
 
           {/* cards */}
           {layers.reference && vis.frames.map((f) =>
-            f.steps.map((st) => (
-              <StepCard key={st.id} step={st} trail={f.trail} save={saves[st.saveId]}
+            f.steps.map((st, i) => (
+              <StepCard key={st.id} step={st} trail={f.trail} save={saves[st.saveId]} order={f.state === 'expanded' ? i : 0}
                 ghost={f.state === 'ghost'} stacked={f.state === 'collapsed' || f.state === 'ghost'} foreign={f.state !== 'own'} expanded={f.state === 'expanded'} />
             )),
           )}
 
           {/* nearby references from everyone */}
-          {nearby.map((n) => {
+          {nearby.map((n, i) => {
             const st = steps[n.id]
-            return <NearbyCard key={n.id} step={st} save={saves[st.saveId]} trail={trails[st.trailId]} pos={n.pos} />
+            return <NearbyCard key={n.id} step={st} save={saves[st.saveId]} trail={trails[st.trailId]} pos={n.pos} order={i} />
           })}
 
           <EdgesLayer connections={vis.visibleConnections} nearby={nearby} ownFrame={ownFrame}

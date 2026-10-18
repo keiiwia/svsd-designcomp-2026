@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { Avatar, Icon, KindDot } from '../components/ui'
 import { users } from '../data/seed'
 import type { Save, Step, Trail } from '../types'
 import type { Pt } from '../lib/geometry'
 
-export function NearbyCard({ step, save, trail, pos }: { step: Step; save: Save; trail: Trail; pos: Pt }) {
+export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; save: Save; trail: Trail; pos: Pt; order?: number }) {
   const [hover, setHover] = useState(false)
   const openDetail = useStore((s) => s.openDetail)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
@@ -14,7 +15,10 @@ export function NearbyCard({ step, save, trail, pos }: { step: Step; save: Save;
   const u = users[trail.ownerId]
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.35 + order * 0.09, ease: 'easeOut' }}
       className="absolute"
       style={{ left: pos.x, top: pos.y, zIndex: hover ? 50 : 8 }}
       onPointerEnter={() => setHover(true)}
@@ -51,6 +55,6 @@ export function NearbyCard({ step, save, trail, pos }: { step: Step; save: Save;
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

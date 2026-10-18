@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useStore, useSizes } from '../store'
 import { Avatar } from '../components/ui'
 import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geometry'
@@ -58,7 +59,8 @@ export function EdgesLayer({
       const mid = { x: (start.x + bTarget.x) / 2, y: (start.y + bTarget.y) / 2 }
       lines.push(
         <g key={c.id}>
-          <line x1={start.x} y1={start.y} x2={bTarget.x} y2={bTarget.y} stroke="#c9c5be" strokeWidth={1} />
+          <motion.line x1={start.x} y1={start.y} x2={bTarget.x} y2={bTarget.y} stroke="#c9c5be" strokeWidth={1}
+            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, ease: 'easeInOut' }} />
           <circle cx={start.x} cy={start.y} r={3} fill="white" stroke="#aba59c" />
           {c.anchor ? (
             <circle cx={bTarget.x} cy={bTarget.y} r={6} fill="rgba(255,255,255,0.7)" stroke="#aba59c" strokeWidth={1.2} />
@@ -68,10 +70,11 @@ export function EdgesLayer({
         </g>,
       )
       chips.push(
-        <div key={c.id} className="absolute -translate-x-1/2 -translate-y-1/2 bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card max-w-[150px] line-clamp-3 leading-[14px]"
-          style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content' }} title={c.because}>
+        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.25 }}
+          className="absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card max-w-[150px] line-clamp-3 leading-[14px]"
+          style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
           {c.because}
-        </div>,
+        </motion.div>,
       )
     } else {
       // blue curve from the bottom of yours to the spot on theirs
@@ -82,16 +85,18 @@ export function EdgesLayer({
       const mid = cubic(s, c1, c2, e, 0.5)
       lines.push(
         <g key={c.id}>
-          <path d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke="#4a62c4" strokeWidth={1.5} fill="none" />
+          <motion.path d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke="#4a62c4" strokeWidth={1.5} fill="none"
+            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.7, ease: 'easeInOut' }} />
           <circle cx={s.x} cy={s.y} r={3} fill="white" stroke="#4a62c4" />
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
       )
       chips.push(
-        <div key={c.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card whitespace-nowrap max-w-[260px] overflow-hidden text-ellipsis"
-          style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content' }} title={c.because}>
+        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.45, duration: 0.25 }}
+          className="absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card whitespace-nowrap max-w-[260px] overflow-hidden text-ellipsis"
+          style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
           <Avatar userId={c.authorId} size={14} /> <span className="truncate">{c.because}</span>
-        </div>,
+        </motion.div>,
       )
     }
   }

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type PointerEvent as RPE } from 'react'
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 import { useStore, useSizes } from '../store'
 import { useDrag } from './drag'
 import { Icon } from '../components/ui'
@@ -28,8 +29,8 @@ export function CardBody({ save, compact }: { save: Save; compact?: boolean }) {
   )
 }
 
-export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded }: {
-  step: Step; trail: Trail; save: Save; ghost?: boolean; stacked?: boolean; foreign?: boolean; expanded?: boolean
+export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded, order = 0 }: {
+  step: Step; trail: Trail; save: Save; ghost?: boolean; stacked?: boolean; foreign?: boolean; expanded?: boolean; order?: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const setSize = useSizes((s) => s.setSize)
@@ -91,8 +92,11 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded 
   }
 
   return (
-    <div
+    <motion.div
       ref={ref}
+      initial={{ opacity: 0, scale: 0.94, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 30, delay: order * 0.06 }}
       data-step-id={step.id}
       data-connectable={ghost || own || foreign ? 'true' : 'false'}
       onPointerDown={onPointerDown}
@@ -122,7 +126,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded 
       {selected && !own && expanded && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] flex items-center gap-1 bg-white border border-line rounded-[12px] shadow-card-lift p-1 whitespace-nowrap" style={{ zIndex: 45 }}
           onPointerDown={(e) => e.stopPropagation()}>
-          <button onClick={(e) => { e.stopPropagation(); const t = window.prompt('Add a thought'); if (t) addNote(trail.id, { x: step.pos.x, y: step.pos.y + 140 }, t) }}
+          <button onClick={(e) => { e.stopPropagation(); addNote(trail.id, { x: step.pos.x, y: step.pos.y + 150 }, ''); selectStep(null) }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink-2 hover:bg-paper"><Icon name="thought" size={12} /> Add a thought</button>
           <button onClick={(e) => { e.stopPropagation(); branchFromStep(step.id) }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink bg-frame"><Icon name="branch" size={12} /> Branch from here</button>
@@ -156,6 +160,6 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded 
           ))}
         </>
       )}
-    </div>
+    </motion.div>
   )
 }

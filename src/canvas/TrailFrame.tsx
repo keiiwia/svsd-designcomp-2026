@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import type { Rect } from '../lib/geometry'
@@ -33,12 +34,15 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const scale = r.width / rect.w
     const x = (e.clientX - r.left) / scale, y = (e.clientY - r.top) / scale
-    const text = window.prompt('Add a thought')
-    if (text) addNote(trail.id, { x: rect.x + x - trail.origin.x - 75, y: rect.y + y - trail.origin.y - 20 }, text)
+    addNote(trail.id, { x: rect.x + x - trail.origin.x - 75, y: rect.y + y - trail.origin.y - 20 }, '')
+    useStore.getState().setTool('add')
   }
 
   return (
-    <div
+    <motion.div
+      initial={own ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
       className={clsx(
         'absolute rounded-[26px]',
         dashed ? 'border-[1.4px] border-dashed border-ink-4/70 bg-paper/40' : 'bg-frame',
@@ -112,6 +116,6 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
           +
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
