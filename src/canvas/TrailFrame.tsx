@@ -35,7 +35,7 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
     const scale = r.width / rect.w
     const x = (e.clientX - r.left) / scale, y = (e.clientY - r.top) / scale
     addNote(trail.id, { x: rect.x + x - trail.origin.x - 75, y: rect.y + y - trail.origin.y - 20 }, '')
-    useStore.getState().setTool('add')
+    useStore.getState().setTool('select')
   }
 
   return (

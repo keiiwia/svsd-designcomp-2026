@@ -259,7 +259,7 @@ export function Canvas() {
     return { x, y, attach: { x: x + 200, y } }
   }, [draft, steps, trails, saves, sizes, toCanvas])
 
-  const cursor = drag.kind === 'pan' ? 'grabbing' : tool === 'move' ? 'grab' : tool === 'thought' ? 'copy' : 'default'
+  const cursor = drag.kind === 'pan' ? 'grabbing' : tool === 'hand' ? 'grab' : tool === 'thought' ? 'copy' : 'default'
 
   return (
     <CanvasCtx.Provider value={api}>

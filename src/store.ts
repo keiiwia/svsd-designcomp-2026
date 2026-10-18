@@ -38,6 +38,7 @@ export interface TrailsState {
   branchState: Record<string, BranchState>
   unlocked: Record<string, boolean>
   nearbyVisible: boolean
+  pinned: Record<string, boolean>
   trailNotes: Record<string, TrailNote>
   ui: UIState
   draft: BecauseDraft | null
@@ -78,6 +79,9 @@ export interface TrailsState {
   branchFromStep: (stepId: string) => void
   connectSaveToStep: (saveId: string, stepId: string) => void
   toggleLayer: (k: keyof Layers) => void
+  togglePin: (stepId: string) => void
+  addLink: (url: string) => void
+  placeNextSave: () => boolean
   startWalk: (trailId: string, index?: number) => void
   walkNext: () => void
   walkPrev: () => void
@@ -87,7 +91,7 @@ export interface TrailsState {
 }
 
 const initialUI: UIState = {
-  tool: 'add',
+  tool: 'select',
   selectedStepId: null,
   detailStepId: null,
   sidebar: { kind: 'saves' },
@@ -116,6 +120,7 @@ export function freshState() {
     branchState: { [KEIIWIA_TRAIL]: 'hidden' } as Record<string, BranchState>,
     unlocked: {} as Record<string, boolean>,
     nearbyVisible: false,
+    pinned: {} as Record<string, boolean>,
     trailNotes: { [OWN_TRAIL]: JSON.parse(JSON.stringify(ownTrailNote)) } as Record<string, TrailNote>,
     ui: { ...initialUI },
     draft: null as BecauseDraft | null,
@@ -336,6 +341,33 @@ export const useStore = create<TrailsState>()(
       },
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
+      togglePin: (stepId) => set((s) => ({ pinned: { ...s.pinned, [stepId]: !s.pinned[stepId] } })),
+
+      // Add link: a pointer reference (a still, quote or timestamp plus a link out)
+      addLink: (url) => {
+        const s = get()
+        let host = url
+        try { host = new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace(/^www\./, '') } catch { /* keep raw */ }
+        const id = `link${s.seq}`
+        const save: Save = { id, ownerId: YOU, medium: 'link', mediumLabel: 'Link', title: host, thought: '', url, cardWidth: 160, day: 'Today' }
+        set({ saves: { ...s.saves, [id]: save }, seq: s.seq + 1 })
+        const own = Object.values(get().steps).filter((st) => st.trailId === OWN_TRAIL)
+        const right = own.reduce((m, st) => Math.max(m, st.pos.x + 200), 24)
+        const o = get().trails[OWN_TRAIL].origin
+        get().placeSave(id, { x: o.x + right, y: o.y + 60 })
+      },
+
+      // Add image: the next save waiting on your phone lands on the canvas
+      placeNextSave: () => {
+        const s = get()
+        const next = Object.values(s.saves).find((sv) => sv.ownerId === YOU && !s.placed.includes(sv.id) && sv.thumb)
+        if (!next) return false
+        const own = Object.values(s.steps).filter((st) => st.trailId === OWN_TRAIL)
+        const right = own.reduce((m, st) => Math.max(m, st.pos.x + 210), 24)
+        const o = s.trails[OWN_TRAIL].origin
+        s.placeSave(next.id, { x: o.x + right, y: o.y + 56 })
+        return true
+      },
       startWalk: (trailId, index = 1) =>
         set((s) => ({ ui: { ...s.ui, walk: { trailId, index, phase: index <= 1 ? 'reference' : 'because' }, detailStepId: null, peekStepId: null, selectedStepId: null, tool: 'walk' } })),
       walkNext: () =>
@@ -355,12 +387,12 @@ export const useStore = create<TrailsState>()(
           if (w.index > 1) return { ui: { ...s.ui, walk: { ...w, index: w.index - 1, phase: 'reference' } } }
           return {}
         }),
-      endWalk: () => set((s) => ({ ui: { ...s.ui, walk: null, tool: 'add' } })),
+      endWalk: () => set((s) => ({ ui: { ...s.ui, walk: null, tool: 'select' } })),
       setOverview: (overview) => set((s) => ({ ui: { ...s.ui, overview } })),
       reset: () => set({ ...freshState() }),
     }),
     {
-      name: 'trails-demo-v1',
+      name: 'trails-demo-v2',
       partialize: (s) => {
         const { draft: _d, camera: _c, editingNoteId: _e, ...rest } = s
         return rest as TrailsState

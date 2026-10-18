@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Canvas } from './canvas/Canvas'
-import { FilePanel, SearchBar, Toolbar } from './panels/Chrome'
+import { FilePanel, SearchBar } from './panels/Chrome'
+import { Toolbar } from './panels/Toolbar'
 import { Sidebar } from './panels/Sidebar'
 import { DetailModal } from './detail/DetailModal'
 import { WalkMode } from './detail/WalkMode'
 import { loadScene } from './scenes'
 import { useStore } from './store'
+import { useCanvasApi } from './canvas/CanvasContext'
 
 const MotionTuner = import.meta.env.DEV ? lazy(() => import('./dev/MotionTuner')) : null
 
@@ -28,9 +30,12 @@ export default function App() {
       }
       if (e.key === 'R' && e.shiftKey) { st.reset(); loadScene(1) }
       if (e.key === 'D' && e.shiftKey && import.meta.env.DEV) setTuner((t) => !t)
-      if (e.key === 'v' || e.key === 'V') st.setTool('add')
-      if (e.key === 'h' || e.key === 'H') st.setTool('move')
-      if (e.key === 't' || e.key === 'T') st.setTool('thought')
+      if (e.key === 'v') st.setTool('select')
+      if (e.key === 'h') st.setTool('hand')
+      if (e.key === 't') st.setTool('thought')
+      if (e.key === 'p' && st.ui.selectedStepId) st.togglePin(st.ui.selectedStepId)
+      if (e.key === 'a') window.dispatchEvent(new CustomEvent('trails:toggle-add-menu'))
+      if (e.key === 'f') { const api = useCanvasApi.getState().api; if (st.ui.overview) { api?.focusOwn(); st.setOverview(false) } else { api?.fitAll(); st.setOverview(true) } }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

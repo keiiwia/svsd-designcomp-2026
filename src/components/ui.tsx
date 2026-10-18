@@ -21,12 +21,28 @@ import iconMuted from '../assets/icons/muted.svg'
 import iconSource from '../assets/icons/source.svg'
 import iconClose from '../assets/icons/close.svg'
 import iconLock from '../assets/icons/lock.svg'
+import iconCursor from '../assets/icons/cursor-tool.svg'
+import iconCaret from '../assets/icons/caret.svg'
+import iconNote from '../assets/icons/note.svg'
+import iconAdd from '../assets/icons/add.svg'
+import iconPin from '../assets/icons/pin.svg'
+import iconLayerReference from '../assets/icons/layer-reference.svg'
+import iconLayerYours from '../assets/icons/layer-yours.svg'
+import iconLayerEveryone from '../assets/icons/layer-everyone.svg'
+import iconSlash from '../assets/icons/slash.svg'
+import iconLink from '../assets/icons/link.svg'
+import iconImage from '../assets/icons/image.svg'
+import iconNoteMenu from '../assets/icons/note-menu.svg'
+import iconLockSmall from '../assets/icons/lock-small.svg'
 
 const icons = {
   search: iconSearch, play: iconPlay, grip: iconGrip, chev: iconChev, phone: iconPhone, text: iconText,
   move: iconMove, thought: iconThought, ref: iconRef, branch: iconBranch, walk: iconWalk, plus: iconPlus,
   mic: iconMic, connect: iconConnect, pause: iconPause, muted: iconMuted, source: iconSource, close: iconClose,
   lock: iconLock,
+  cursor: iconCursor, caret: iconCaret, note: iconNote, add: iconAdd, pin: iconPin,
+  layerReference: iconLayerReference, layerYours: iconLayerYours, layerEveryone: iconLayerEveryone,
+  slash: iconSlash, link: iconLink, image: iconImage, noteMenu: iconNoteMenu, lockSmall: iconLockSmall,
 }
 export type IconName = keyof typeof icons
 

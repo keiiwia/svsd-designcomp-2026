@@ -40,6 +40,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
   const draft = useStore((s) => s.draft)
   const hint = useStore((s) => s.ui.connectHintStepId === step.id)
   const anyHint = useStore((s) => s.ui.connectHintStepId !== null)
+  const pinned = useStore((s) => !!s.pinned[step.id])
   const tool = useStore((s) => s.ui.tool)
   const selectStep = useStore((s) => s.selectStep)
   const openDetail = useStore((s) => s.openDetail)
@@ -64,7 +65,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
   const onPointerDown = (e: RPE) => {
     if (e.button !== 0) return
     e.stopPropagation()
-    if (tool === 'move') return
+    if (tool === 'hand') return
     if (!own && !ghost) {
       // other people's cards: click opens detail (handled on click)
       return
@@ -118,7 +119,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       className={clsx(
         'absolute group flex flex-col bg-white overflow-visible rounded-[13px] border transition-shadow',
         inDraft || connectHover ? 'border-blue border-2 shadow-focus' : selected ? 'border-ink border-[1.4px] shadow-card' : 'border-line shadow-card',
-        own && tool !== 'move' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+        own && tool !== 'hand' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
         ghost && 'opacity-90',
       )}
       style={{ left: pos.x, top: pos.y, width, zIndex: inDraft ? 30 : selected ? 20 : 10 }}
@@ -132,6 +133,11 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       <div className="overflow-hidden rounded-[12px] flex flex-col">
         <CardBody save={save} />
       </div>
+      {pinned && (
+        <span className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-ink text-white flex items-center justify-center shadow-card" style={{ zIndex: 41 }} title="Pinned">
+          <Icon name="pin" size={13} />
+        </span>
+      )}
       {foreign && (
         <span className="absolute left-2 top-2 flex gap-1">
           <span className="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center text-[9px] font-semibold text-keiiwia border border-white shadow-sm">K</span>

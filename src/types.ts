@@ -1,6 +1,6 @@
 export type Medium =
   | 'image' | 'video' | 'text' | 'object' | 'song' | 'writing'
-  | 'photo' | 'film' | 'poster' | 'textile' | 'sound'
+  | 'photo' | 'film' | 'poster' | 'textile' | 'sound' | 'link'
 
 export interface User {
   id: string
@@ -13,6 +13,7 @@ export interface User {
 export interface Save {
   id: string
   ownerId: string
+  url?: string
   medium: Medium
   mediumLabel: string
   title: string
@@ -77,7 +78,7 @@ export interface TrailNote {
   items: { id: string; text: string; done: boolean }[]
 }
 
-export type Tool = 'move' | 'thought' | 'add' | 'branch' | 'walk'
+export type Tool = 'select' | 'hand' | 'thought' | 'walk'
 export type BranchState = 'hidden' | 'ghost' | 'collapsed' | 'expanded'
 export type SidebarMode =
   | { kind: 'saves' }

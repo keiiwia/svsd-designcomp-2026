@@ -45,7 +45,7 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   }
 
   const onPointerDown = (e: RPE) => {
-    if (e.button !== 0 || tool === 'move' || editing) return
+    if (e.button !== 0 || tool === 'hand' || editing) return
     e.stopPropagation()
     const r = ref.current!.getBoundingClientRect()
     setDrag({ kind: 'note', noteId: note.id, offset: { x: e.clientX - r.left, y: e.clientY - r.top }, moved: false })
