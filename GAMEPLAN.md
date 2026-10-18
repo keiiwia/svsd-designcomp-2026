@@ -11,7 +11,7 @@ A single-page web app, demo-grade, that walks the ten Figma states end to end on
 | Decision | Choice | Why |
 |---|---|---|
 | Hosting | Vercel, static site (`vercel` CLI is already installed) | Zero ops, preview URLs per push, free |
-| Stack | Vite + React 18 + TypeScript, Tailwind, `@xyflow/react` (React Flow) for the canvas, Zustand for state, Framer Motion for popovers/transitions | React Flow gives pan/zoom, drag, edges, groups, minimap for free. Custom nodes and edges keep the look ours |
+| Stack | Vite + React 19 + TypeScript, Tailwind v4, a **custom pan/zoom canvas** (absolutely positioned cards + one SVG layer for edges), Zustand for state, Framer Motion for popovers/transitions | Changed from React Flow on Saturday: the anchored-to-a-spot edges, auto-sizing trail frames and collapsed stacks were easier to own than to bend React Flow into. ~10 cards on screen, so performance is a non-issue |
 | Persistence | `localStorage` only, plus a **Reset demo** shortcut | Enough for a video; survives refresh during recording |
 | Backend / accounts / real Instagram capture | Cut | "From your phone" sidebar is seeded saves |
 | Video playback | One short `.mp4` in `public/` for the dunes clip (or a still with a fake scrubber if the file is a problem) | We can't host films; the design only needs one clip |
@@ -19,6 +19,24 @@ A single-page web app, demo-grade, that walks the ten Figma states end to end on
 | Mic button in the because card | Visual only | Voice input is a day of work on its own |
 | Fonts | Pull the exact families from Figma on Saturday; fall back to Google equivalents (italic serif → Instrument Serif / Cormorant; UI → Inter; mono labels → JetBrains Mono) | Avoid licensing surprises |
 | Name | "Trails" (the T mark in the header) | Doc also says "Because"; the gesture is the because, the product is Trails |
+
+## 1b. Status (Saturday evening)
+
+Built and checked in the browser at 1440×1024:
+
+- All ten states render from the scene hotkeys (`1`–`9`, `0` = state 10, `Shift+R` resets).
+- Live interactions verified: drag a save onto the canvas, pull a line from a card's port to a spot on another card, write a because and link, rename the trail, nearby references appear, hover card, detail view locked and unlocked, Make a connection → ghost frame → link → collapsed stack + thread sidebar, Add keiiwia's branch → expanded frame + branch sidebar, click her step → floating toolbar → Branch from here sidebar.
+- Not yet done: the `dunes.mp4` clip (the detail view falls back to the still with a drawn scrubber), the thought tool uses a browser prompt, Walk mode is just the detail view, no step-peek on hover in the strip (click a step instead).
+
+**To deploy:** the folder is a git repo now with one commit. Run these once (the remote add needs your approval):
+
+```bash
+git remote add origin https://github.com/keiiwia/svsd-designcomp-2026.git
+```
+```bash
+git pull --rebase origin main && git push -u origin main
+```
+Then at vercel.com/new import `keiiwia/svsd-designcomp-2026` (framework auto-detects as Vite, no settings needed). Or `vercel login` then `vercel --prod` from this folder.
 
 ## 2. Scope tiers
 

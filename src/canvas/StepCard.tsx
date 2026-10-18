@@ -5,7 +5,6 @@ import { useDrag } from './drag'
 import { Icon } from '../components/ui'
 import type { Save, Step, Trail } from '../types'
 import { stepAbs } from '../lib/geometry'
-import { OWN_TRAIL } from '../data/seed'
 
 export function CardBody({ save, compact }: { save: Save; compact?: boolean }) {
   const hasImage = !!save.thumb
@@ -37,6 +36,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded 
   const selected = useStore((s) => s.ui.selectedStepId === step.id)
   const draft = useStore((s) => s.draft)
   const hint = useStore((s) => s.ui.connectHintStepId === step.id)
+  const anyHint = useStore((s) => s.ui.connectHintStepId !== null)
   const tool = useStore((s) => s.ui.tool)
   const selectStep = useStore((s) => s.selectStep)
   const openDetail = useStore((s) => s.openDetail)
@@ -137,27 +137,25 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded 
       )}
       {own && !ghost && (
         <>
-          <button
-            onPointerDown={onPortDown}
-            title="Pull a line to another reference"
-            className={clsx(
-              'absolute top-1/2 -right-2.5 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-white border-[1.5px] border-blue cursor-crosshair',
-              'opacity-0 group-hover:opacity-100 transition-opacity hover:scale-125',
-              (selected || inDraft) && 'opacity-100',
-            )}
-            style={{ zIndex: 40 }}
-          />
-          <button
-            onPointerDown={onPortDown}
-            className={clsx(
-              'absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full bg-white border-[1.5px] border-blue cursor-crosshair',
-              'opacity-0 group-hover:opacity-100 transition-opacity hover:scale-125',
-            )}
-            style={{ zIndex: 40 }}
-          />
+          {(['right', 'bottom'] as const).map((side) => (
+            <button
+              key={side}
+              data-port
+              onPointerDown={onPortDown}
+              title="Pull a line to another reference"
+              className={clsx(
+                'absolute flex items-center justify-center w-6 h-6 cursor-crosshair group/port',
+                side === 'right' ? 'top-1/2 -right-3 -translate-y-1/2' : '-bottom-3 left-1/2 -translate-x-1/2',
+                'opacity-0 group-hover:opacity-100 transition-opacity',
+                (selected || inDraft || anyHint) && 'opacity-100',
+              )}
+              style={{ zIndex: 40 }}
+            >
+              <span className={clsx('block w-[14px] h-[14px] rounded-full bg-white border-[1.5px] border-blue transition-transform group-hover/port:scale-125', anyHint && 'animate-pulse')} />
+            </button>
+          ))}
         </>
       )}
-      {trail.id === OWN_TRAIL && step.index === 0 ? null : null}
     </div>
   )
 }
