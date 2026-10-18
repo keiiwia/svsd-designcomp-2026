@@ -9,6 +9,7 @@ export interface Easing { duration: number; ease: [number, number, number, numbe
 
 export interface MotionTokens {
   cardDrop: Spring        // a reference landing on the canvas, a note appearing
+  pop: Spring             // a thread of thoughts popping open or stacking shut
   cardStagger: number     // seconds between cards when a branch expands
   because: Spring         // the blue because card
   edgeDraw: number        // seconds to draw a same-trail line
@@ -29,6 +30,7 @@ export const defaultMotion: MotionTokens = {
   // Tuned for screen recording: springs settle in ~0.6s with a soft overshoot, lines take
   // long enough to be seen drawing, and nothing snaps.
   cardDrop: { stiffness: 230, damping: 26, mass: 1 },
+  pop: { stiffness: 340, damping: 17, mass: 0.9 },
   cardStagger: 0.11,
   because: { stiffness: 260, damping: 28, mass: 1 },
   edgeDraw: 0.8,

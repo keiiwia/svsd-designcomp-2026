@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, type PointerEvent as RPE } from 'react'
-import { motion } from 'motion/react'
+import { motion, useAnimate } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { useDrag } from './drag'
 import { Avatar } from '../components/ui'
@@ -8,7 +8,6 @@ import type { Thought, Trail } from '../types'
 import { spring, useMotion } from '../lib/motion'
 
 export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
-  const ref = useRef<HTMLDivElement>(null)
   const ta = useRef<HTMLTextAreaElement>(null)
   const setSize = useSizes((s) => s.setSize)
   const setDrag = useDrag((s) => s.set)
@@ -27,11 +26,23 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   const u = users[note.authorId]
   const pos = { x: trail.origin.x + note.onCanvas!.x, y: trail.origin.y + note.onCanvas!.y }
 
+  // When a thread pops open or stacks shut, each note springs from where it was to where it lands.
+  // Drags move the note directly, so they are left alone.
+  const [scope, animateNote] = useAnimate()
+  const lastPos = useRef(pos)
+  useEffect(() => {
+    const dx = lastPos.current.x - pos.x, dy = lastPos.current.y - pos.y
+    lastPos.current = pos
+    if (useDrag.getState().drag.kind !== 'none') return
+    if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return
+    animateNote(scope.current, { x: [dx, 0], y: [dy, 0], scale: [0.9, 1] }, { type: 'spring', ...mo.pop })
+  }, [pos.x, pos.y, animateNote, scope, mo.pop])
+
   useLayoutEffect(() => {
-    const el = ref.current
+    const el = scope.current
     if (!el) return
     setSize(note.id, { w: el.offsetWidth, h: el.offsetHeight })
-  }, [note.id, note.text, editing, setSize])
+  }, [note.id, note.text, editing, setSize, scope])
 
   useEffect(() => {
     if (!editing) return
@@ -59,7 +70,7 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
 
   return (
     <motion.div
-      ref={ref}
+      ref={scope}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={spring(mo.cardDrop)}

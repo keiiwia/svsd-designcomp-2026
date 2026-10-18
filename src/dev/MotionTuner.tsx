@@ -28,6 +28,7 @@ export default function MotionTuner() {
   const p = useDialKit('Trails motion', {
     cards: {
       drop: { type: 'spring', ...d.cardDrop },
+      pop: { type: 'spring', ...d.pop },
       stagger: [d.cardStagger, 0, 0.25, 0.01],
     },
     because: { spring: { type: 'spring', ...d.because } },
@@ -52,6 +53,7 @@ export default function MotionTuner() {
   useEffect(() => {
     useMotion.setState({
       cardDrop: asSpring(p.cards.drop),
+      pop: asSpring(p.cards.pop),
       cardStagger: p.cards.stagger as number,
       because: asSpring(p.because.spring),
       edgeDraw: p.edges.draw as number,
