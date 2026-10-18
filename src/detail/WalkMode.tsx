@@ -82,13 +82,14 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
 
       {/* page */}
       <div className="flex-1 flex items-center justify-center px-10" style={{ perspective: 1600 }}>
-        <AnimatePresence mode="wait">
+        {/* popLayout lets the old page leave while the new one arrives: a turn, not a blink */}
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={pageKey}
             initial={{ opacity: 0, x: mo.pageSlide, rotateY: -mo.pageTilt }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
-            exit={{ opacity: 0, x: -mo.pageSlide, rotateY: mo.pageTilt }}
-            transition={{ duration: mo.pageTurn.duration, ease: mo.pageTurn.ease }}
+            exit={{ opacity: 0, x: -mo.pageSlide, rotateY: mo.pageTilt, transition: { duration: mo.pageTurn.duration * 0.55, ease: mo.pageTurn.ease } }}
+            transition={{ duration: mo.pageTurn.duration, ease: mo.pageTurn.ease, delay: 0.08 }}
             className="w-full max-w-[760px] flex flex-col items-start gap-7"
             style={{ transformOrigin: 'left center' }}
           >
