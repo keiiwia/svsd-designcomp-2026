@@ -116,10 +116,9 @@ export function Canvas() {
         st.moveStep(d.stepId, { x: p.x - trail.origin.x, y: p.y - trail.origin.y })
         if (!d.moved) setDrag({ ...d, moved: true })
       } else if (d.kind === 'note') {
-        const p = toCanvas({ x: e.clientX - d.offset.x, y: e.clientY - d.offset.y })
-        const note = st.thoughts[d.noteId]
-        const trail = st.trails[st.steps[note.stepId]?.trailId ?? 't-you']
-        st.moveNote(d.noteId, { x: p.x - trail.origin.x, y: p.y - trail.origin.y })
+        const scale = st.camera.scale
+        const dx = (e.clientX - d.startClient.x) / scale, dy = (e.clientY - d.startClient.y) / scale
+        st.moveNotes(d.members.map((m) => ({ id: m.id, pos: { x: m.start.x + dx, y: m.start.y + dy } })))
         if (!d.moved) setDrag({ ...d, moved: true })
       } else if (d.kind === 'save' || d.kind === 'thought' || d.kind === 'thread') {
         setDrag({ ...d, client: { x: e.clientX, y: e.clientY }, overCanvas: isOverCanvas(e.clientX, e.clientY) })

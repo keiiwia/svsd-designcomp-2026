@@ -18,6 +18,9 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   const updateNote = useStore((s) => s.updateNote)
   const deleteNote = useStore((s) => s.deleteNote)
   const fanOutStack = useStore((s) => s.fanOutStack)
+  const restack = useStore((s) => s.restack)
+  const fanLead = useStore((s) => (note.fanOf ? Object.values(s.thoughts).filter((t) => t.fanOf === note.fanOf && t.onCanvas)[0]?.id === note.id : false))
+  const fanSize = useStore((s) => (note.fanOf ? Object.values(s.thoughts).filter((t) => t.fanOf === note.fanOf && t.onCanvas).length : 0))
   const stackSize = useStore((s) => (note.stackId ? Object.values(s.thoughts).filter((t) => t.stackId === note.stackId).length : 0))
   const stackTop = useStore((s) => (note.stackId ? Object.values(s.thoughts).filter((t) => t.stackId === note.stackId).slice(-1)[0]?.id === note.id : false))
   const mo = useMotion()
@@ -47,8 +50,11 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   const onPointerDown = (e: RPE) => {
     if (e.button !== 0 || tool === 'hand' || editing) return
     e.stopPropagation()
-    const r = ref.current!.getBoundingClientRect()
-    setDrag({ kind: 'note', noteId: note.id, offset: { x: e.clientX - r.left, y: e.clientY - r.top }, moved: false })
+    // a stacked thread moves as one unit
+    const all = useStore.getState().thoughts
+    const members = (note.stackId ? Object.values(all).filter((t) => t.stackId === note.stackId && t.onCanvas) : [note])
+      .map((t) => ({ id: t.id, start: { x: t.onCanvas!.x, y: t.onCanvas!.y } }))
+    setDrag({ kind: 'note', noteId: note.id, startClient: { x: e.clientX, y: e.clientY }, members, moved: false })
   }
 
   return (
@@ -73,6 +79,16 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
         </button>
       )}
       {note.stackId && !stackTop && <span className="absolute inset-0 rounded-[10px] bg-black/5" />}
+      {fanLead && (
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); restack(note.fanOf!) }}
+          className="absolute -top-3 -right-2 flex items-center gap-1 bg-white border border-line text-ink-2 rounded-full pl-2 pr-2.5 py-1 text-[10px] font-medium shadow-card whitespace-nowrap hover:bg-paper"
+          style={{ zIndex: 6 }}
+        >
+          ⤡ stack {fanSize} thoughts
+        </button>
+      )}
       {!note.stackId && (
         <button
           data-port
@@ -106,7 +122,6 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
         <Avatar userId={note.authorId} size={12} ring={false} />
         <span className="text-ink-2">{u.name}</span>
         {note.stance && <span>{note.stance}</span>}
-        {note.pulled && !note.stackId && <span className="ml-auto text-ink-4">from the clip</span>}
       </p>
     </motion.div>
   )

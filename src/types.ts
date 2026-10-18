@@ -68,6 +68,8 @@ export interface Thought {
   parentId?: string
   onCanvas?: { x: number; y: number }
   stackId?: string
+  /** members of a popped-open stack remember it so they can be stacked again */
+  fanOf?: string
   /** dragged onto the canvas by you from a conversation */
   pulled?: boolean
 }

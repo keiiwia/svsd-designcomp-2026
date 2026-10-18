@@ -19,26 +19,32 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay, duration: 0.25 }}
-      className={blue
-        ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-text'
-        : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-text leading-[14px]'}
-      style={{ left: pos.x, top: pos.y, zIndex: editing ? 60 : 15, width: 'max-content', maxWidth: editing ? 240 : blue ? 260 : 150, x: '-50%', y: '-50%', outline: editing ? '1.5px solid rgba(74,98,196,0.6)' : 'none' }}
+      className={editing
+        ? 'absolute flex flex-col gap-2.5 bg-blue text-white rounded-[16px] px-4 py-3.5 shadow-because cursor-text'
+        : blue
+          ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-text'
+          : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-text leading-[14px]'}
+      style={{ left: pos.x, top: pos.y, zIndex: editing ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue ? 260 : 150, x: '-50%', y: '-50%' }}
       title={editing ? undefined : `${because} · click to rewrite`}
       onPointerDown={stop}
       onClick={(e) => { stop(e); if (!editing) setEditing(true) }}
     >
-      {blue && <Avatar userId={authorId} size={14} />}
+      {!editing && blue && <Avatar userId={authorId} size={14} />}
       {editing ? (
-        <textarea
-          ref={ref}
-          value={val}
-          onChange={(e) => setVal(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commit() } if (e.key === 'Escape') { e.preventDefault(); setEditing(false) } }}
-          onPointerDown={stop}
-          rows={2}
-          className={blue ? 'bg-transparent outline-none text-white w-[200px] resize-none leading-[14px]' : 'bg-transparent outline-none text-ink w-[200px] resize-none leading-[14px]'}
-        />
+        <>
+          <span className="flex items-center gap-2 text-[12px] font-medium text-white/80"><Avatar userId={authorId} size={18} /> Because</span>
+          <textarea
+            ref={ref}
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commit() } if (e.key === 'Escape') { e.preventDefault(); setEditing(false) } }}
+            onPointerDown={stop}
+            rows={3}
+            className="bg-transparent outline-none text-white w-full resize-none text-[17px] leading-[24px] tracking-[-0.1px]"
+          />
+          <span className="flex items-center justify-between text-[11px] text-white/60"><span>Enter saves · Esc keeps the old words</span><button onPointerDown={stop} onClick={(e) => { stop(e); commit() }} className="bg-white text-blue rounded-full px-3 py-1 text-[11px] font-semibold">Save</button></span>
+        </>
       ) : (
         <span className={blue ? 'truncate block max-w-[230px]' : 'line-clamp-3'}>{because}</span>
       )}

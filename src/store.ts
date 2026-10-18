@@ -68,6 +68,8 @@ export interface TrailsState {
   placeThought: (thoughtId: string, canvasPos: { x: number; y: number }) => void
   placeThread: (stepId: string, canvasPos: { x: number; y: number }) => void
   fanOutStack: (stackId: string) => void
+  restack: (fanOf: string) => void
+  moveNotes: (moves: { id: string; pos: { x: number; y: number } }[]) => void
   updateTrailNote: (trailId: string, patch: Partial<TrailNote>) => void
   toggleNoteItem: (trailId: string, itemId: string) => void
   addNoteItem: (trailId: string, text: string) => void
@@ -275,10 +277,26 @@ export const useStore = create<TrailsState>()(
         const r = 150
         members.forEach((t, i) => {
           const a = -Math.PI / 2 + (i / members.length) * Math.PI * 2
-          next[t.id] = { ...t, stackId: undefined, onCanvas: { x: cx + Math.cos(a) * r - 75, y: cy + Math.sin(a) * r * 0.7 - 36 } }
+          next[t.id] = { ...t, stackId: undefined, fanOf: stackId, onCanvas: { x: cx + Math.cos(a) * r - 75, y: cy + Math.sin(a) * r * 0.7 - 36 } }
         })
         set({ thoughts: next })
       },
+
+      restack: (fanOf) => {
+        const s = get()
+        const members = Object.values(s.thoughts).filter((t) => t.fanOf === fanOf && t.onCanvas)
+        if (members.length === 0) return
+        const base = members[0].onCanvas!
+        const next = { ...s.thoughts }
+        members.forEach((t, i) => { next[t.id] = { ...t, fanOf: undefined, stackId: fanOf, onCanvas: { x: base.x + i * 5, y: base.y + i * 5 } } })
+        set({ thoughts: next })
+      },
+      moveNotes: (moves) =>
+        set((s) => {
+          const next = { ...s.thoughts }
+          for (const m of moves) if (next[m.id]) next[m.id] = { ...next[m.id], onCanvas: m.pos }
+          return { thoughts: next }
+        }),
 
       updateTrailNote: (trailId, patch) =>
         set((s) => ({ trailNotes: { ...s.trailNotes, [trailId]: { ...(s.trailNotes[trailId] ?? { title: '', body: '', items: [] }), ...patch } } })),

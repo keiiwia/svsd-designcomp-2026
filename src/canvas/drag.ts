@@ -8,7 +8,7 @@ export type DragKind =
   | { kind: 'thread'; stepId: string; client: Pt; overCanvas: boolean }
   | { kind: 'connect'; fromStepId: string; client: Pt; hoverStepId: string | null }
   | { kind: 'step'; stepId: string; offset: Pt; moved: boolean }
-  | { kind: 'note'; noteId: string; offset: Pt; moved: boolean }
+  | { kind: 'note'; noteId: string; startClient: Pt; members: { id: string; start: Pt }[]; moved: boolean }
   | { kind: 'pan'; start: Pt; camStart: Pt }
 
 interface DragState { drag: DragKind; set: (d: DragKind) => void }
