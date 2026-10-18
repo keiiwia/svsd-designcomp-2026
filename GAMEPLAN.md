@@ -26,7 +26,8 @@ Built and checked in the browser at 1440×1024:
 
 - All ten states render from the scene hotkeys (`1`–`9`, `0` = state 10, `Shift+R` resets).
 - Live interactions verified: drag a save onto the canvas, pull a line from a card's port to a spot on another card, write a because and link, rename the trail, nearby references appear, hover card, detail view locked and unlocked, Make a connection → ghost frame → link → collapsed stack + thread sidebar, Add keiiwia's branch → expanded frame + branch sidebar, click her step → floating toolbar → Branch from here sidebar.
-- Not yet done: the `dunes.mp4` clip (the detail view falls back to the still with a drawn scrubber), the thought tool uses a browser prompt, Walk mode is just the detail view, no step-peek on hover in the strip (click a step instead).
+- Saturday-night polish done: inline thought notes (thought tool or the step toolbar, `T` key, Enter to finish, double-click a note to edit), mount/draw-in motion for cards, edges, chips, frames and nearby cards, a live playhead in the detail view (slow zoom on the still, clickable scrubber, thoughts surface as the playhead passes them), hover peek in the step strip, and the view fits itself after branching from a step.
+- Not yet done: the real `dunes.mp4` clip (drop it in `public/video/dunes.mp4` and the detail view picks it up automatically), Walk mode is just the detail view, the mic button and the search bar are visual only.
 
 **To deploy:** the folder is a git repo now with one commit. Run these once (the remote add needs your approval):
 
