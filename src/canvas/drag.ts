@@ -4,6 +4,8 @@ import type { Pt } from '../lib/geometry'
 export type DragKind =
   | { kind: 'none' }
   | { kind: 'save'; saveId: string; client: Pt; overCanvas: boolean }
+  | { kind: 'thought'; thoughtId: string; client: Pt; overCanvas: boolean }
+  | { kind: 'thread'; stepId: string; client: Pt; overCanvas: boolean }
   | { kind: 'connect'; fromStepId: string; client: Pt; hoverStepId: string | null }
   | { kind: 'step'; stepId: string; offset: Pt; moved: boolean }
   | { kind: 'note'; noteId: string; offset: Pt; moved: boolean }

@@ -6,6 +6,7 @@ export interface CanvasApi {
   toCanvas: (client: Pt) => Pt
   fitAll: () => void
   focusOwn: () => void
+  centerOn: (pt: Pt) => void
 }
 export const CanvasCtx = createContext<CanvasApi | null>(null)
 export const useCanvas = () => {

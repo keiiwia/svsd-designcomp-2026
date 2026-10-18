@@ -1,4 +1,4 @@
-import type { Connection, Save, Step, Thought, Trail, User } from '../types'
+import type { Connection, Save, Step, Thought, Trail, TrailNote, User } from '../types'
 
 export const users: Record<string, User> = {
   you:     { id: 'you',     name: 'You',     initial: 'Y', color: '#c47a52', noteBg: '#ffe7d6' },
@@ -128,3 +128,14 @@ export const nearbyLayout: Record<string, { dx: number; dy: number; anchor: 'rig
 }
 
 export const WELCOME = ['Welcome back, Adam.', 'Got a new idea to rabbit hole through?']
+
+export const ownTrailNote: TrailNote = {
+  title: 'Tiny people, big things',
+  body: 'Every save so far has small bodies inside something bigger — the figures on the vase, the people stitched into the skirt.',
+  items: [
+    { id: 'i1', text: 'maybe it’s about scale?', done: false },
+    { id: 'i2', text: 'the film still breaks it — one person, and she’s leaving', done: false },
+    { id: 'i3', text: 'ask keiiwia where the film still is from', done: false },
+    { id: 'i4', text: 'also find more embroidery history', done: false },
+  ],
+}

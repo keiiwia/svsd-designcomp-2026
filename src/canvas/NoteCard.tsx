@@ -16,6 +16,9 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
   const setEditingNote = useStore((s) => s.setEditingNote)
   const updateNote = useStore((s) => s.updateNote)
   const deleteNote = useStore((s) => s.deleteNote)
+  const fanOutStack = useStore((s) => s.fanOutStack)
+  const stackSize = useStore((s) => (note.stackId ? Object.values(s.thoughts).filter((t) => t.stackId === note.stackId).length : 0))
+  const stackTop = useStore((s) => (note.stackId ? Object.values(s.thoughts).filter((t) => t.stackId === note.stackId).slice(-1)[0]?.id === note.id : false))
   const u = users[note.authorId]
   const pos = { x: trail.origin.x + note.onCanvas!.x, y: trail.origin.y + note.onCanvas!.y }
 
@@ -55,8 +58,30 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
       onPointerDown={onPointerDown}
       onDoubleClick={(e) => { e.stopPropagation(); if (note.authorId === 'you') setEditingNote(note.id) }}
       className="absolute rounded-[10px] px-3.5 py-3 flex flex-col gap-2 cursor-grab active:cursor-grabbing"
-      style={{ left: pos.x, top: pos.y, width: 150, background: u.noteBg, zIndex: editing ? 35 : 5, outline: editing ? '1.5px solid rgba(74,98,196,0.5)' : 'none' }}
+      style={{ left: pos.x, top: pos.y, width: 150, background: u.noteBg, zIndex: editing ? 35 : note.pulled ? 9 : 5, outline: editing ? '1.5px solid rgba(74,98,196,0.5)' : 'none', boxShadow: note.pulled ? '0 6px 16px rgba(31,26,20,0.08)' : undefined }}
     >
+      {note.stackId && stackTop && (
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); fanOutStack(note.stackId!) }}
+          className="absolute -top-3 -right-2 flex items-center gap-1 bg-ink text-white rounded-full pl-2 pr-2.5 py-1 text-[10px] font-medium shadow-card whitespace-nowrap"
+          style={{ zIndex: 6 }}
+        >
+          {stackSize} thoughts · pop open
+        </button>
+      )}
+      {note.stackId && !stackTop && <span className="absolute inset-0 rounded-[10px] bg-black/5" />}
+      {!note.stackId && (
+        <button
+          data-port
+          title="Pull a line to a reference"
+          onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setDrag({ kind: 'connect', fromStepId: note.id, client: { x: e.clientX, y: e.clientY }, hoverStepId: null }) }}
+          className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center cursor-crosshair opacity-0 hover:opacity-100 [div:hover>&]:opacity-100"
+          style={{ zIndex: 7 }}
+        >
+          <span className="block w-[12px] h-[12px] rounded-full bg-white border-[1.5px] border-blue" />
+        </button>
+      )}
       {editing ? (
         <textarea
           ref={ta}
@@ -79,6 +104,7 @@ export function NoteCard({ note, trail }: { note: Thought; trail: Trail }) {
         <Avatar userId={note.authorId} size={12} ring={false} />
         <span className="text-ink-2">{u.name}</span>
         {note.stance && <span>{note.stance}</span>}
+        {note.pulled && !note.stackId && <span className="ml-auto text-ink-4">from the clip</span>}
       </p>
     </motion.div>
   )

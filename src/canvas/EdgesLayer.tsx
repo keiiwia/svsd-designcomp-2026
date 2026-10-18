@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useStore, useSizes } from '../store'
 import { Avatar } from '../components/ui'
 import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geometry'
-import type { Connection } from '../types'
+import type { Connection, Thought } from '../types'
 import { useDrag } from './drag'
 
 function cubic(a: Pt, c1: Pt, c2: Pt, b: Pt, t: number): Pt {
@@ -14,7 +14,7 @@ function cubic(a: Pt, c1: Pt, c2: Pt, b: Pt, t: number): Pt {
 }
 
 export function EdgesLayer({
-  connections, nearby, ownFrame, popoverTop, toCanvas, layers,
+  connections, nearby, ownFrame, popoverTop, toCanvas, layers, notes, visibleStepIds,
 }: {
   connections: Connection[]
   nearby: { id: string; pos: Pt; w: number; h: number }[]
@@ -22,6 +22,8 @@ export function EdgesLayer({
   popoverTop: Pt | null
   toCanvas: (p: Pt) => Pt
   layers: { reference: boolean; yours: boolean; everyone: boolean }
+  notes: Thought[]
+  visibleStepIds: Set<string>
 }) {
   const steps = useStore((s) => s.steps)
   const trails = useStore((s) => s.trails)
@@ -30,10 +32,16 @@ export function EdgesLayer({
   const sizes = useSizes((s) => s.sizes)
   const drag = useDrag((s) => s.drag)
 
-  const rectOf = (stepId: string) => {
-    const st = steps[stepId]
-    return stepRect(st, trails[st.trailId], saves[st.saveId], sizes)
+  const thoughts = useStore((s) => s.thoughts)
+  const rectOf = (id: string) => {
+    const st = steps[id]
+    if (st) return stepRect(st, trails[st.trailId], saves[st.saveId], sizes)
+    const th = thoughts[id]
+    const trail = trails[steps[th.stepId]?.trailId ?? 't-you']
+    const sz = sizes[id] ?? { w: 150, h: 72 }
+    return { x: trail.origin.x + (th.onCanvas?.x ?? 0), y: trail.origin.y + (th.onCanvas?.y ?? 0), w: sz.w, h: sz.h }
   }
+  const trailOf = (id: string) => steps[id]?.trailId ?? steps[thoughts[id]?.stepId ?? '']?.trailId
 
   const lines: React.ReactNode[] = []
   const chips: React.ReactNode[] = []
@@ -49,10 +57,19 @@ export function EdgesLayer({
     )
   }
 
+  // a pulled thought stays tied to the clip it came from
+  for (const n of notes) {
+    if (!n.pulled || !visibleStepIds.has(n.stepId)) continue
+    const a = rectOf(n.id), b = rectOf(n.stepId)
+    const p = edgePoint(a, { x: b.x + b.w / 2, y: b.y + b.h / 2 })
+    const q = edgePoint(b, { x: a.x + a.w / 2, y: a.y + a.h / 2 })
+    lines.push(<line key={`tether-${n.id}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="#c9c5be" strokeWidth={1} strokeDasharray="3 4" />)
+  }
+
   for (const c of connections) {
     const showChip = c.authorId === 'you' ? layers.yours : layers.everyone
     const a = rectOf(c.fromStepId), b = rectOf(c.toStepId)
-    const cross = steps[c.fromStepId].trailId !== steps[c.toStepId].trailId
+    const cross = trailOf(c.fromStepId) !== trailOf(c.toStepId)
     const end = anchorPoint(b, c.anchor)
     const bTarget = c.anchor ? end : edgePoint(b, { x: a.x + a.w / 2, y: a.y + a.h / 2 })
     const start = edgePoint(a, bTarget)
@@ -108,7 +125,7 @@ export function EdgesLayer({
     const a = rectOf(draft.fromStepId), b = rectOf(draft.toStepId)
     const end = anchorPoint(b, draft.anchor)
     const start = edgePoint(a, end)
-    const cross = steps[draft.fromStepId].trailId !== steps[draft.toStepId].trailId
+    const cross = trailOf(draft.fromStepId) !== trailOf(draft.toStepId)
     const s = cross ? { x: a.x + a.w / 2, y: a.y + a.h } : start
     const d = cross
       ? `M ${s.x} ${s.y} C ${s.x} ${(s.y + end.y) / 2}, ${end.x} ${(s.y + end.y) / 2}, ${end.x} ${end.y}`

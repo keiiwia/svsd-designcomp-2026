@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type {
-  Anchor, BecauseDraft, BranchState, Connection, Save, SidebarMode, Size, Step, Thought, Tool, Trail,
+  Anchor, BecauseDraft, BranchState, Connection, Save, SidebarMode, Size, Stance, Step, Thought, Tool, Trail, TrailNote,
 } from './types'
 import { useCanvasApi } from './canvas/CanvasContext'
 import {
   allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, trails as seedTrails,
-  KEIIWIA_REPLY, KEIIWIA_TRAIL, OWN_TRAIL, YOU,
+  KEIIWIA_REPLY, KEIIWIA_TRAIL, OWN_TRAIL, YOU, ownTrailNote,
 } from './data/seed'
 
 export interface Camera { x: number; y: number; scale: number }
@@ -38,6 +38,7 @@ export interface TrailsState {
   branchState: Record<string, BranchState>
   unlocked: Record<string, boolean>
   nearbyVisible: boolean
+  trailNotes: Record<string, TrailNote>
   ui: UIState
   draft: BecauseDraft | null
   camera: Camera
@@ -62,7 +63,13 @@ export interface TrailsState {
   makeConnectionFrom: (stepId: string) => void
   setBranchState: (trailId: string, s: BranchState) => void
   setSidebar: (m: SidebarMode) => void
-  addThought: (stepId: string, text: string, t?: number) => void
+  addThought: (stepId: string, text: string, t?: number, stance?: Stance, parentId?: string) => void
+  placeThought: (thoughtId: string, canvasPos: { x: number; y: number }) => void
+  placeThread: (stepId: string, canvasPos: { x: number; y: number }) => void
+  fanOutStack: (stackId: string) => void
+  updateTrailNote: (trailId: string, patch: Partial<TrailNote>) => void
+  toggleNoteItem: (trailId: string, itemId: string) => void
+  addNoteItem: (trailId: string, text: string) => void
   addNote: (trailId: string, pos: { x: number; y: number }, text: string) => string
   updateNote: (id: string, text: string) => void
   deleteNote: (id: string) => void
@@ -109,6 +116,7 @@ export function freshState() {
     branchState: { [KEIIWIA_TRAIL]: 'hidden' } as Record<string, BranchState>,
     unlocked: {} as Record<string, boolean>,
     nearbyVisible: false,
+    trailNotes: { [OWN_TRAIL]: JSON.parse(JSON.stringify(ownTrailNote)) } as Record<string, TrailNote>,
     ui: { ...initialUI },
     draft: null as BecauseDraft | null,
     camera: { x: 0, y: 0, scale: 1 },
@@ -164,7 +172,10 @@ export const useStore = create<TrailsState>()(
         const d = s.draft
         if (!d || !d.text.trim()) return
         const id = `c${s.seq}`
-        const from = s.steps[d.fromStepId], to = s.steps[d.toStepId]
+        const fromThought = s.thoughts[d.fromStepId]
+        const from = s.steps[d.fromStepId] ?? s.steps[fromThought?.stepId ?? '']
+        const to = s.steps[d.toStepId]
+        if (!from || !to) { set({ draft: null }); return }
         const conn: Connection = {
           id, fromStepId: d.fromStepId, toStepId: d.toStepId, anchor: d.anchor, t: d.t,
           because: d.text.trim(), attachments: d.attachments, authorId: YOU,
@@ -210,11 +221,58 @@ export const useStore = create<TrailsState>()(
       setBranchState: (trailId, st) => set((s) => ({ branchState: { ...s.branchState, [trailId]: st } })),
       setSidebar: (sidebar) => set((s) => ({ ui: { ...s.ui, sidebar } })),
 
-      addThought: (stepId, text, t) => {
+      addThought: (stepId, text, t, stance, parentId) => {
         const s = get()
         const id = `th${s.seq}`
-        set({ thoughts: { ...s.thoughts, [id]: { id, stepId, authorId: YOU, text, t } }, seq: s.seq + 1 })
+        set({ thoughts: { ...s.thoughts, [id]: { id, stepId, authorId: YOU, text, t, stance, parentId } }, seq: s.seq + 1 })
       },
+
+      placeThought: (thoughtId, canvasPos) => {
+        const s = get()
+        const th = s.thoughts[thoughtId]
+        const trail = s.trails[s.steps[th.stepId]?.trailId ?? OWN_TRAIL]
+        set({ thoughts: { ...s.thoughts, [thoughtId]: { ...th, pulled: true, onCanvas: { x: canvasPos.x - trail.origin.x, y: canvasPos.y - trail.origin.y }, stackId: undefined } } })
+      },
+
+      placeThread: (stepId, canvasPos) => {
+        const s = get()
+        const trail = s.trails[s.steps[stepId]?.trailId ?? OWN_TRAIL]
+        const roots = Object.values(s.thoughts).filter((t) => t.stepId === stepId && !t.parentId && t.stance !== 'linked your skirt')
+        const stackId = `stack-${stepId}`
+        const next = { ...s.thoughts }
+        roots.forEach((t, i) => {
+          next[t.id] = { ...t, pulled: true, stackId, onCanvas: { x: canvasPos.x - trail.origin.x + i * 5, y: canvasPos.y - trail.origin.y + i * 5 } }
+        })
+        set({ thoughts: next })
+      },
+
+      fanOutStack: (stackId) => {
+        const s = get()
+        const members = Object.values(s.thoughts).filter((t) => t.stackId === stackId && t.onCanvas)
+        if (members.length === 0) return
+        const cx = members[0].onCanvas!.x + 75, cy = members[0].onCanvas!.y + 36
+        const next = { ...s.thoughts }
+        const r = 150
+        members.forEach((t, i) => {
+          const a = -Math.PI / 2 + (i / members.length) * Math.PI * 2
+          next[t.id] = { ...t, stackId: undefined, onCanvas: { x: cx + Math.cos(a) * r - 75, y: cy + Math.sin(a) * r * 0.7 - 36 } }
+        })
+        set({ thoughts: next })
+      },
+
+      updateTrailNote: (trailId, patch) =>
+        set((s) => ({ trailNotes: { ...s.trailNotes, [trailId]: { ...(s.trailNotes[trailId] ?? { title: '', body: '', items: [] }), ...patch } } })),
+      toggleNoteItem: (trailId, itemId) =>
+        set((s) => {
+          const n = s.trailNotes[trailId]
+          if (!n) return {}
+          return { trailNotes: { ...s.trailNotes, [trailId]: { ...n, items: n.items.map((it) => (it.id === itemId ? { ...it, done: !it.done } : it)) } } }
+        }),
+      addNoteItem: (trailId, text) =>
+        set((s) => {
+          const n = s.trailNotes[trailId] ?? { title: '', body: '', items: [] }
+          return { trailNotes: { ...s.trailNotes, [trailId]: { ...n, items: [...n.items, { id: `i${s.seq}`, text, done: false }] } }, seq: s.seq + 1 }
+        }),
 
       addNote: (trailId, pos, text) => {
         const s = get()

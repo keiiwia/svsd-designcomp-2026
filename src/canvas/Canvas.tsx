@@ -11,7 +11,7 @@ import { NearbyCard } from './NearbyCard'
 import { EdgesLayer } from './EdgesLayer'
 import { BecausePopover } from './BecausePopover'
 import { anchorPoint, estimateSize, stepRect, type Pt } from '../lib/geometry'
-import { nearbyLayout, WELCOME } from '../data/seed'
+import { nearbyLayout, users, WELCOME } from '../data/seed'
 
 const DESIGN = { w: 1440, h: 1024 }
 
@@ -27,6 +27,7 @@ export function Canvas() {
   const layers = useStore((s) => s.ui.layers)
   const nearbyVisible = useStore((s) => s.nearbyVisible)
   const branchState = useStore((s) => s.branchState)
+  const thoughtsAll = useStore((s) => s.thoughts)
   const sizes = useSizes((s) => s.sizes)
   const drag = useDrag((s) => s.drag)
   const setDrag = useDrag((s) => s.set)
@@ -86,7 +87,15 @@ export function Canvas() {
   const fitAll = useCallback(() => fitRects(vis.frames.map((f) => f.rect)), [vis.frames, fitRects])
   const focusOwn = useCallback(() => fitRects([vis.ownFrame.rect], 1), [vis.ownFrame.rect, fitRects])
 
-  const api = useMemo<CanvasApi>(() => ({ toCanvas, fitAll, focusOwn }), [toCanvas, fitAll, focusOwn])
+  const centerOn = useCallback((pt: Pt) => {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const c = useStore.getState().camera
+    animateTo({ x: Math.round(r.width / 2 - pt.x * c.scale), y: Math.round(r.height / 2 - pt.y * c.scale), scale: c.scale })
+  }, [animateTo])
+
+  const api = useMemo<CanvasApi>(() => ({ toCanvas, fitAll, focusOwn, centerOn }), [toCanvas, fitAll, focusOwn, centerOn])
   const publish = useCanvasApi((s) => s.set)
   useEffect(() => { publish(api) }, [api, publish])
 
@@ -110,7 +119,7 @@ export function Canvas() {
         const trail = st.trails[st.steps[note.stepId]?.trailId ?? 't-you']
         st.moveNote(d.noteId, { x: p.x - trail.origin.x, y: p.y - trail.origin.y })
         if (!d.moved) setDrag({ ...d, moved: true })
-      } else if (d.kind === 'save') {
+      } else if (d.kind === 'save' || d.kind === 'thought' || d.kind === 'thread') {
         setDrag({ ...d, client: { x: e.clientX, y: e.clientY }, overCanvas: isOverCanvas(e.clientX, e.clientY) })
       } else if (d.kind === 'connect') {
         const hit = stepAtClient(e.clientX, e.clientY, d.fromStepId)
@@ -125,6 +134,16 @@ export function Canvas() {
           const p = toCanvas({ x: e.clientX, y: e.clientY })
           const size = estimateSize(st.saves[d.saveId])
           st.placeSave(d.saveId, { x: p.x - size.w / 2, y: p.y - 40 })
+        }
+      } else if (d.kind === 'thought') {
+        if (isOverCanvas(e.clientX, e.clientY)) {
+          const p = toCanvas({ x: e.clientX, y: e.clientY })
+          st.placeThought(d.thoughtId, { x: p.x - 75, y: p.y - 20 })
+        }
+      } else if (d.kind === 'thread') {
+        if (isOverCanvas(e.clientX, e.clientY)) {
+          const p = toCanvas({ x: e.clientX, y: e.clientY })
+          st.placeThread(d.stepId, { x: p.x - 75, y: p.y - 20 })
         }
       } else if (d.kind === 'connect') {
         const hit = stepAtClient(e.clientX, e.clientY, d.fromStepId)
@@ -253,8 +272,6 @@ export function Canvas() {
           {vis.notes.map((n) => {
             const st = steps[n.stepId]
             if (!st) return null
-            const f = vis.frames.find((fr) => fr.trail.id === st.trailId)
-            if (!f || (f.state !== 'own' && f.state !== 'expanded')) return null
             if (!layers.yours && n.authorId === 'you') return null
             if (!layers.everyone && n.authorId !== 'you') return null
             return <NoteCard key={n.id} note={n} trail={trails[st.trailId]} />
@@ -275,10 +292,29 @@ export function Canvas() {
           })}
 
           <EdgesLayer connections={layers.reference ? vis.visibleConnections : []} nearby={nearby} ownFrame={ownFrame} layers={layers}
+            notes={vis.notes} visibleStepIds={new Set(vis.visibleSteps.map((st) => st.id))}
             popoverTop={popover ? popover.attach : null} toCanvas={toCanvas} />
 
           {draft && popover && <BecausePopover pos={popover} />}
         </div>
+
+        {(drag.kind === 'thought' || drag.kind === 'thread') && (
+          <div className="fixed pointer-events-none" style={{ left: drag.client.x - 75, top: drag.client.y - 20, zIndex: 100, transform: `scale(${camera.scale}) rotate(-2deg)`, transformOrigin: '75px 20px' }}>
+            {drag.kind === 'thought' ? (
+              <div className={`w-[150px] rounded-[10px] px-3.5 py-3 text-[11.5px] leading-[15px] text-ink shadow-card-lift ${drag.overCanvas ? 'ring-2 ring-blue/60' : 'opacity-80'}`} style={{ background: users[thoughtsAll[drag.thoughtId]?.authorId ?? 'you'].noteBg }}>
+                {thoughtsAll[drag.thoughtId]?.text}
+              </div>
+            ) : (
+              <div className="relative w-[150px]">
+                <div className="absolute inset-x-2 top-2 h-full rounded-[10px] bg-white border border-line" />
+                <div className="absolute inset-x-1 top-1 h-full rounded-[10px] bg-white border border-line" />
+                <div className={`relative rounded-[10px] px-3.5 py-3 text-[11.5px] text-ink bg-white border border-line shadow-card-lift ${drag.overCanvas ? 'ring-2 ring-blue/60' : 'opacity-80'}`}>
+                  A conversation · {Object.values(thoughtsAll).filter((t) => t.stepId === drag.stepId && !t.parentId).length} thoughts
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* save drag ghost, in screen space */}
         {drag.kind === 'save' && (

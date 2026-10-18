@@ -29,7 +29,7 @@ export function useVisible() {
       const tSteps = stepList.filter((s) => s.trailId === trail.id).sort((a, b) => a.index - b.index)
       const notesHere = noteList.filter((n) => {
         const st = steps[n.stepId]
-        return st && st.trailId === trail.id
+        return st && st.trailId === trail.id && !n.pulled
       })
       if (own) {
         // branch trails of yours only appear once they have steps
@@ -67,9 +67,12 @@ export function useVisible() {
     }
 
     const visibleIds = new Set(visibleSteps.map((s) => s.id))
+    const shownFrames = new Set(frames.filter((f) => f.state === 'own' || f.state === 'expanded').map((f) => f.trail.id))
+    const visibleNotes = noteList.filter((n) => n.pulled || shownFrames.has(steps[n.stepId]?.trailId ?? ''))
+    for (const n of visibleNotes) visibleIds.add(n.id)
     const visibleConnections = connList.filter((c) => visibleIds.has(c.fromStepId) && visibleIds.has(c.toStepId))
     const ownFrame = frames.find((f) => f.trail.id === OWN_TRAIL)!
 
-    return { frames, visibleSteps, visibleConnections, ownFrame, notes: noteList }
+    return { frames, visibleSteps, visibleConnections, ownFrame, notes: visibleNotes }
   }, [trails, steps, saves, thoughts, branchState, connections, hint, draft, sizes])
 }

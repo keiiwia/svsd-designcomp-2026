@@ -55,15 +55,26 @@ export interface Connection {
   authorId: string
 }
 
+export type Stance = 'built on it' | 'disagrees' | 'wonders' | 'agrees' | 'linked your skirt'
+
 export interface Thought {
   id: string
   stepId: string
   authorId: string
   text: string
-  stance?: 'built on it' | 'disagrees' | 'wonders' | 'linked your skirt'
+  stance?: Stance
   t?: number
   parentId?: string
   onCanvas?: { x: number; y: number }
+  stackId?: string
+  /** dragged onto the canvas by you from a conversation */
+  pulled?: boolean
+}
+
+export interface TrailNote {
+  title: string
+  body: string
+  items: { id: string; text: string; done: boolean }[]
 }
 
 export type Tool = 'move' | 'thought' | 'add' | 'branch' | 'walk'
@@ -76,6 +87,7 @@ export type SidebarMode =
   | { kind: 'none' }
 
 export interface BecauseDraft {
+  /** a step id, or a thought id when you draw from a thought bubble */
   fromStepId: string
   toStepId: string
   anchor?: Anchor

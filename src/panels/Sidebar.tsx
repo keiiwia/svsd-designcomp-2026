@@ -7,6 +7,9 @@ import { Avatar, Icon } from '../components/ui'
 import { users, whoBranched, KEIIWIA_TRAIL } from '../data/seed'
 import type { Save, Thought } from '../types'
 import { fmtTime } from '../lib/geometry'
+import { OverviewPanel } from './OverviewPanel'
+import { SelectionPanel } from './SelectionPanel'
+import { OWN_TRAIL } from '../data/seed'
 
 function Shell({ children, title, onClose, width = 360 }: { children: React.ReactNode; title?: React.ReactNode; onClose?: () => void; width?: number }) {
   return (
@@ -33,9 +36,20 @@ function Shell({ children, title, onClose, width = 360 }: { children: React.Reac
 
 export function Sidebar() {
   const mode = useStore((s) => s.ui.sidebar)
+  const selected = useStore((s) => s.ui.selectedStepId)
+  const ownCount = useStore((s) => Object.values(s.steps).filter((st) => st.trailId === OWN_TRAIL).length)
+  const unplaced = useStore((s) => Object.values(s.saves).filter((sv) => sv.ownerId === 'you' && !s.placed.includes(sv.id)).length)
+  const walking = useStore((s) => !!s.ui.walk)
+  const selectedValid = useStore((s) => (selected ? !!s.steps[selected] : false))
+  if (walking) return null
+  const defaultPanel = selected && selectedValid
+    ? <SelectionPanel key={`sel-${selected}`} stepId={selected} />
+    : ownCount < 2 && unplaced > 0
+      ? <SavesPanel key="saves" />
+      : <OverviewPanel key="overview" />
   return (
     <AnimatePresence mode="wait">
-      {mode.kind === 'saves' && <SavesPanel key="saves" />}
+      {mode.kind === 'saves' && defaultPanel}
       {mode.kind === 'connection' && <ConnectionPanel key={mode.connectionId} connectionId={mode.connectionId} />}
       {mode.kind === 'branch' && <BranchPanel key={`b-${mode.trailId}`} trailId={mode.trailId} />}
       {mode.kind === 'branchFrom' && <BranchFromPanel key={`bf-${mode.stepId}`} stepId={mode.stepId} />}
