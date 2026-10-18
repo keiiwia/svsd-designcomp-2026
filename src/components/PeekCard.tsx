@@ -5,7 +5,7 @@ import { users, KEIIWIA_BECAUSE } from '../data/seed'
 import type { Step } from '../types'
 
 /** The "because first" preview of someone else's step: their reason, then the reference, then a way in. */
-export function PeekCard({ step, onConnect, onWalk, className }: { step: Step; onConnect: () => void; onWalk?: () => void; className?: string }) {
+export function PeekCard({ step, onConnect, className }: { step: Step; onConnect: () => void; className?: string }) {
   const save = useStore((s) => s.saves[step.saveId])
   const trail = useStore((s) => s.trails[step.trailId])
   const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === step.id && c.authorId === trail.ownerId && s.steps[c.fromStepId]?.trailId === step.trailId))
@@ -35,7 +35,6 @@ export function PeekCard({ step, onConnect, onWalk, className }: { step: Step; o
       </p>
       <div className="flex items-center gap-1.5">
         <button onClick={onConnect} className="flex items-center gap-1.5 bg-ink text-white rounded-full px-2.5 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap"><Icon name="connect" size={11} /> Make a connection</button>
-        {onWalk && <button onClick={onWalk} className="text-[11px] text-ink-2 hover:text-ink px-1.5 whitespace-nowrap">Walk</button>}
       </div>
     </motion.div>
   )

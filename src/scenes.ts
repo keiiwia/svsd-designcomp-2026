@@ -1,6 +1,7 @@
 import { useStore } from './store'
 import { KEIIWIA_TRAIL, OWN_TRAIL } from './data/seed'
 import { useCanvasApi } from './canvas/CanvasContext'
+import { clearHistory } from './lib/history'
 
 /**
  * Deterministic snapshots of the ten Figma states, rebuilt by replaying actions
@@ -9,6 +10,8 @@ import { useCanvasApi } from './canvas/CanvasContext'
 export function loadScene(n: number) {
   const st = useStore.getState()
   st.reset()
+  // the replayed actions below are set-up, not something to undo
+  queueMicrotask(clearHistory)
   const s = () => useStore.getState()
   const o = s().trails[OWN_TRAIL].origin
   const place = (saveId: string, x: number, y: number) => s().placeSave(saveId, { x: o.x + x, y: o.y + y })

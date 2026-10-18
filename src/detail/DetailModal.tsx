@@ -22,7 +22,6 @@ interface StripCtx {
   onLeave: () => void
   onClick: (s: Step) => void
   onConnect: (id: string) => void
-  onWalk: (s: Step) => void
 }
 
 function Crumb({ s, current, ctx }: { s: Step; current?: boolean; ctx: StripCtx }) {
@@ -55,7 +54,7 @@ function StepMini({ s, current, who, ctx }: { s: Step; current?: boolean; who: s
         </button>
         <AnimatePresence>
           {ctx.peek === s.id && (
-            <PeekCard step={s} onConnect={() => ctx.onConnect(s.id)} onWalk={() => ctx.onWalk(s)} className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] z-[5]" />
+            <PeekCard step={s} onConnect={() => ctx.onConnect(s.id)} className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] z-[5]" />
           )}
         </AnimatePresence>
       </div>
@@ -92,7 +91,6 @@ function Detail({ stepId }: { stepId: string }) {
   const addThought = useStore((s) => s.addThought)
   const peek = useStore((s) => s.ui.peekStepId)
   const setPeek = useStore((s) => s.setPeek)
-  const startWalk = useStore((s) => s.startWalk)
   const [val, setVal] = useState('')
   const [playing, setPlaying] = useState(true)
   const mo = useMotion()
@@ -142,7 +140,6 @@ function Detail({ stepId }: { stepId: string }) {
       setPeek(pinnedPeek.current ? st.id : null)
     },
     onConnect: (id) => { pinnedPeek.current = false; setPeek(null); makeConnectionFrom(id) },
-    onWalk: (st) => { pinnedPeek.current = false; startWalk(st.trailId, st.index) },
   }
 
   return (

@@ -4,7 +4,8 @@ import { FilePanel, SearchBar } from './panels/Chrome'
 import { Toolbar } from './panels/Toolbar'
 import { Sidebar } from './panels/Sidebar'
 import { DetailModal } from './detail/DetailModal'
-import { WalkMode } from './detail/WalkMode'
+import { Shortcuts } from './panels/Shortcuts'
+import { useHistory } from './lib/history'
 import { loadScene } from './scenes'
 import { useStore } from './store'
 import { useCanvasApi } from './canvas/CanvasContext'
@@ -15,33 +16,54 @@ const Agentation = import.meta.env.DEV ? lazy(() => import('agentation').then((m
 
 export default function App() {
   const [tuner, setTuner] = useState(() => import.meta.env.DEV && new URLSearchParams(location.search).has('tune'))
+  const [help, setHelp] = useState(false)
   useEffect(() => {
+    let spaceFrom: ReturnType<typeof useStore.getState>['ui']['tool'] | null = null
+    const inField = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
+    }
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
       const st = useStore.getState()
+      const mod = e.metaKey || e.ctrlKey
+      // undo / redo work everywhere except inside a text field (the field has its own)
+      if (mod && (e.key === 'z' || e.key === 'Z')) {
+        if (inField(e)) return
+        e.preventDefault()
+        if (e.shiftKey) useHistory.getState().redo(); else useHistory.getState().undo()
+        return
+      }
+      if (mod && (e.key === 'y' || e.key === 'Y')) { if (inField(e)) return; e.preventDefault(); useHistory.getState().redo(); return }
+      if (inField(e) || mod) return
+      const k = e.key.toLowerCase()
       if (e.key === 'Escape') {
-        if (st.ui.walk) st.endWalk()
+        if (help) setHelp(false)
         else if (st.draft) st.cancelDraft()
         else if (st.ui.detailStepId) st.openDetail(null)
         else if (st.ui.peekStepId) st.setPeek(null)
         else st.selectStep(null)
+        return
       }
-      if (/^[0-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey) {
-        loadScene(e.key === '0' ? 10 : Number(e.key))
-      }
-      if (e.key === 'R' && e.shiftKey) { st.reset(); loadScene(1) }
-      if (e.key === 'D' && e.shiftKey && import.meta.env.DEV) setTuner((t) => !t)
-      if (e.key === 'v') st.setTool('select')
-      if (e.key === 'h') st.setTool('hand')
-      if (e.key === 't') st.setTool('thought')
-      if (e.key === 'p' && st.ui.selectedStepId) st.togglePin(st.ui.selectedStepId)
-      if (e.key === 'a') window.dispatchEvent(new CustomEvent('trails:toggle-add-menu'))
-      if (e.key === 'f') { const api = useCanvasApi.getState().api; if (st.ui.overview) { api?.focusOwn(); st.setOverview(false) } else { api?.fitAll(); st.setOverview(true) } }
+      if (e.key === '?') { setHelp((h) => !h); return }
+      if (/^[0-9]$/.test(e.key)) { loadScene(e.key === '0' ? 10 : Number(e.key)); return }
+      if (e.key === 'R' && e.shiftKey) { st.reset(); loadScene(1); return }
+      if (e.key === 'D' && e.shiftKey && import.meta.env.DEV) { setTuner((t) => !t); return }
+      if (e.key === ' ' && !e.repeat) { if (st.ui.tool !== 'hand') { spaceFrom = st.ui.tool; st.setTool('hand') } e.preventDefault(); return }
+      if (k === 'v') st.setTool('select')
+      if (k === 'h') st.setTool('hand')
+      if (k === 't') st.setTool('thought')
+      if (k === 'p' && st.ui.selectedStepId) st.togglePin(st.ui.selectedStepId)
+      if (k === 'a') window.dispatchEvent(new CustomEvent('trails:toggle-add-menu'))
+      if (k === 'f') { const api = useCanvasApi.getState().api; if (st.ui.overview) { api?.focusOwn(); st.setOverview(false) } else { api?.fitAll(); st.setOverview(true) } }
+      if ((e.key === 'Backspace' || e.key === 'Delete') && st.ui.selectedStepId && !st.ui.detailStepId) { e.preventDefault(); st.removeStep(st.ui.selectedStepId) }
+    }
+    const onUp = (e: KeyboardEvent) => {
+      if (e.key === ' ' && spaceFrom) { useStore.getState().setTool(spaceFrom); spaceFrom = null }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+    window.addEventListener('keyup', onUp)
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onUp) }
+  }, [help])
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -51,7 +73,7 @@ export default function App() {
       <Sidebar />
       <Toolbar />
       <DetailModal />
-      <WalkMode />
+      <Shortcuts open={help} onClose={() => setHelp(false)} />
       {tuner && MotionTuner && <Suspense fallback={null}><MotionTuner /></Suspense>}
       {Agentation && <Suspense fallback={null}><Agentation endpoint="http://localhost:4747" /></Suspense>}
     </div>

@@ -82,6 +82,7 @@ export interface TrailsState {
   connectSaveToStep: (saveId: string, stepId: string) => void
   toggleLayer: (k: keyof Layers) => void
   togglePin: (stepId: string) => void
+  removeStep: (stepId: string) => void
   updateConnection: (id: string, because: string) => void
   addLink: (url: string) => void
   placeNextSave: () => boolean
@@ -361,6 +362,21 @@ export const useStore = create<TrailsState>()(
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
       togglePin: (stepId) => set((s) => ({ pinned: { ...s.pinned, [stepId]: !s.pinned[stepId] } })),
+      // Let go of one of your own references: its connections and canvas notes go with it, the save returns to your phone
+      removeStep: (stepId) =>
+        set((s) => {
+          const step = s.steps[stepId]
+          if (!step || s.trails[step.trailId]?.ownerId !== YOU) return {}
+          const { [stepId]: _gone, ...steps } = s.steps
+          const connections = Object.fromEntries(Object.entries(s.connections).filter(([, c]) => c.fromStepId !== stepId && c.toStepId !== stepId))
+          const thoughts = Object.fromEntries(Object.entries(s.thoughts).filter(([, t]) => t.stepId !== stepId))
+          const { [stepId]: _p, ...pinned } = s.pinned
+          return {
+            steps, connections, thoughts, pinned,
+            placed: s.placed.filter((id) => id !== step.saveId),
+            ui: { ...s.ui, selectedStepId: s.ui.selectedStepId === stepId ? null : s.ui.selectedStepId },
+          }
+        }),
       updateConnection: (id, because) =>
         set((s) => (s.connections[id] ? { connections: { ...s.connections, [id]: { ...s.connections[id], because } } } : {})),
 

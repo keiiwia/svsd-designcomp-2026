@@ -85,7 +85,6 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
 
   const branchFromStep = useStore((s) => s.branchFromStep)
   const addNote = useStore((s) => s.addNote)
-  const startWalk = useStore((s) => s.startWalk)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
   const [peek, setPeekLocal] = useState(false)
   const mo = useMotion()
@@ -96,7 +95,6 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
   const onClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (drag.kind === 'step' && drag.moved) return
-    if (tool === 'walk') { startWalk(trail.id, step.index); return }
     if (!own) {
       setPeekLocal(false)
       if (expanded) selectStep(selected ? null : step.id)
@@ -146,7 +144,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       <AnimatePresence>
         {peek && canPeek && (
           <PeekCard step={step} className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] z-[45]"
-            onConnect={() => { setPeekLocal(false); makeConnectionFrom(step.id) }} onWalk={() => { setPeekLocal(false); startWalk(trail.id, step.index) }} />
+            onConnect={() => { setPeekLocal(false); makeConnectionFrom(step.id) }} />
         )}
       </AnimatePresence>
       {selected && !own && expanded && (
