@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useStore } from '../store'
+import { useStore, type WalkState } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import { users, KEIIWIA_BECAUSE, OWN_TRAIL } from '../data/seed'
 
@@ -10,11 +10,12 @@ import { users, KEIIWIA_BECAUSE, OWN_TRAIL } from '../data/seed'
  */
 export function WalkMode() {
   const walk = useStore((s) => s.ui.walk)
-  return <AnimatePresence>{walk && <Walk key={walk.trailId} />}</AnimatePresence>
+  return <AnimatePresence>{walk && <Walk key={walk.trailId} snapshot={walk} />}</AnimatePresence>
 }
 
-function Walk() {
-  const walk = useStore((s) => s.ui.walk)!
+function Walk({ snapshot }: { snapshot: WalkState }) {
+  // while the overlay fades out the store value is already null; keep the last state
+  const walk = useStore((s) => s.ui.walk) ?? snapshot
   const trail = useStore((s) => s.trails[walk.trailId])
   const allSteps = useStore((s) => s.steps)
   const saves = useStore((s) => s.saves)
