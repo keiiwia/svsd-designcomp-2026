@@ -128,7 +128,7 @@ function Walk() {
                       <p className="font-serif italic text-[28px] leading-[1.25] text-ink-2">“{save.thought}”</p>
                     </div>
                   )}
-                  <div className="flex flex-col gap-3 pt-2 min-w-0">
+                  <div className="flex flex-col gap-3 pt-2 min-w-[260px]">
                     <p className="text-[22px] font-semibold text-ink leading-tight">{save.title}</p>
                     <p className="text-[15px] text-ink-2 leading-[22px]">“{save.thought}”</p>
                     <p className="text-[12px] text-ink-3">{save.mediumLabel} · {whose}</p>
@@ -138,10 +138,10 @@ function Walk() {
                       </button>
                       <div className="flex items-center gap-1 pt-1">
                         {!own && (
-                          <button onClick={() => leaveTo(() => makeConnectionFrom(step.id))} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1"><Icon name="connect" size={11} /> Make a connection</button>
+                          <button onClick={() => leaveTo(() => makeConnectionFrom(step.id))} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap"><Icon name="connect" size={11} /> Make a connection</button>
                         )}
-                        <button onClick={() => leaveTo(() => { if (!own) setBranchState(trail.id, 'expanded'); branchFromStep(step.id) })} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1"><Icon name="branch" size={11} /> Branch from here</button>
-                        {walk.index > 1 && <button onClick={prev} className="text-[12px] text-ink-2 hover:text-ink px-2 py-1">← Back</button>}
+                        <button onClick={() => leaveTo(() => { if (!own) setBranchState(trail.id, 'expanded'); branchFromStep(step.id) })} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap"><Icon name="branch" size={11} /> Branch from here</button>
+                        {walk.index > 1 && <button onClick={prev} className="text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap">← Back</button>}
                       </div>
                     </div>
                   </div>
