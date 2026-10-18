@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="520" height="34" viewBox="0 0 520 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Scrubber">
+<rect id="Track" y="18" width="520" height="4" rx="2" fill="#EAE8E4"/>
+<rect id="Played" y="18" width="163.8" height="4" rx="2" fill="#26241F"/>
+<path id="Playhead" d="M168.8 20C168.8 22.7614 166.561 25 163.8 25C161.039 25 158.8 22.7614 158.8 20C158.8 17.2386 161.039 15 163.8 15C166.561 15 168.8 17.2386 168.8 20Z" fill="#26241F" stroke-width="2" stroke="white"/>
+<path id="Moment" d="M50.25 6C50.25 7.79493 48.7949 9.25 47 9.25C45.2051 9.25 43.75 7.79493 43.75 6C43.75 4.20507 45.2051 2.75 47 2.75C48.7949 2.75 50.25 4.20507 50.25 6Z" fill="#ABA59C" stroke-width="1.5" stroke="white"/>
+<path id="Moment_2" d="M166.75 6C166.75 7.79493 165.295 9.25 163.5 9.25C161.705 9.25 160.25 7.79493 160.25 6C160.25 4.20507 161.705 2.75 163.5 2.75C165.295 2.75 166.75 4.20507 166.75 6Z" fill="#ABA59C" stroke-width="1.5" stroke="white"/>
+<path id="Moment_3" d="M362.25 6C362.25 7.79493 360.795 9.25 359 9.25C357.205 9.25 355.75 7.79493 355.75 6C355.75 4.20507 357.205 2.75 359 2.75C360.795 2.75 362.25 4.20507 362.25 6Z" fill="#ABA59C" stroke-width="1.5" stroke="white"/>
+</g>
+</svg>
