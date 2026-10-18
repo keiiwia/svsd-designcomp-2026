@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type PointerEvent as RPE, type WheelEvent as RWE } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type PointerEvent as RPE } from 'react'
 import { AnimatePresence, animate, motion } from 'framer-motion'
 import { useStore, useSizes } from '../store'
 import { useDrag, isOverCanvas, stepAtClient } from './drag'
@@ -174,19 +174,44 @@ export function Canvas() {
     if (st.ui.sidebar.kind === 'branchFrom') st.setSidebar({ kind: 'saves' })
   }
 
-  const onWheel = (e: RWE) => {
-    const c = useStore.getState().camera
-    if (e.ctrlKey || e.metaKey) {
-      const r = ref.current!.getBoundingClientRect()
-      const px = e.clientX - r.left, py = e.clientY - r.top
-      const factor = Math.exp(-e.deltaY * 0.01)
-      const scale = Math.min(2.5, Math.max(0.25, c.scale * factor))
-      const k = scale / c.scale
-      setCamera({ x: px - (px - c.x) * k, y: py - (py - c.y) * k, scale })
-    } else {
-      setCamera({ ...c, x: c.x - e.deltaX, y: c.y - e.deltaY })
+  // Wheel handling lives on a native, non-passive listener: React's onWheel is passive,
+  // so it cannot stop the browser from zooming the whole page on a trackpad pinch.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      // panels (sidebar, modal, toolbar) scroll on their own; the canvas owns everything else
+      if ((e.target as HTMLElement | null)?.closest?.('[data-panel]') && !e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      const c = useStore.getState().camera
+      if (useStore.getState().ui.overview) useStore.getState().setOverview(false)
+      if (e.ctrlKey || e.metaKey) {
+        const r = el.getBoundingClientRect()
+        const px = e.clientX - r.left, py = e.clientY - r.top
+        // trackpad pinches arrive as many small deltas; a mouse wheel notch is ~100, so cap each step
+        const factor = Math.min(1.4, Math.max(0.7, Math.exp(-e.deltaY * 0.01)))
+        const scale = Math.min(2.5, Math.max(0.25, c.scale * factor))
+        const k = scale / c.scale
+        setCamera({ x: px - (px - c.x) * k, y: py - (py - c.y) * k, scale })
+      } else {
+        setCamera({ ...c, x: c.x - e.deltaX, y: c.y - e.deltaY })
+      }
     }
-  }
+    // the canvas fills the window, so listen on the window: a pinch that starts over a panel
+    // must not zoom the page either
+    window.addEventListener('wheel', onWheel, { passive: false })
+    // Safari reports trackpad pinches as gesture events as well
+    const swallow = (e: Event) => e.preventDefault()
+    window.addEventListener('gesturestart', swallow, { passive: false })
+    window.addEventListener('gesturechange', swallow, { passive: false })
+    window.addEventListener('gestureend', swallow, { passive: false })
+    return () => {
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('gesturestart', swallow)
+      window.removeEventListener('gesturechange', swallow)
+      window.removeEventListener('gestureend', swallow)
+    }
+  }, [setCamera])
 
   // ---- derived layout
   const ownFrame = vis.ownFrame.rect
@@ -242,7 +267,6 @@ export function Canvas() {
         className="absolute inset-0 dot-grid overflow-hidden"
         style={{ cursor }}
         onPointerDown={onBgPointerDown}
-        onWheel={onWheel}
       >
         <div
           className="absolute left-0 top-0"

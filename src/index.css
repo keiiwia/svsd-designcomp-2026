@@ -36,7 +36,7 @@
   --shadow-modal: 0px 28px 70px 0px rgba(26,20,15,0.18);
 }
 
-html, body, #root { height: 100%; }
+html, body, #root { height: 100%; touch-action: none; overscroll-behavior: none; }
 body {
   margin: 0;
   background: var(--color-paper);
