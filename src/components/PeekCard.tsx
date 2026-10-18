@@ -8,7 +8,7 @@ import type { Step } from '../types'
 export function PeekCard({ step, onConnect, onWalk, className }: { step: Step; onConnect: () => void; onWalk?: () => void; className?: string }) {
   const save = useStore((s) => s.saves[step.saveId])
   const trail = useStore((s) => s.trails[step.trailId])
-  const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === step.id && c.authorId === trail.ownerId))
+  const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === step.id && c.authorId === trail.ownerId && s.steps[c.fromStepId]?.trailId === step.trailId))
   const nThoughts = useStore((s) => Object.values(s.thoughts).filter((t) => t.stepId === step.id && !t.onCanvas).length)
   const owner = users[trail.ownerId]
   const because = step.id === 'k2' ? KEIIWIA_BECAUSE : conn?.because

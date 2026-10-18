@@ -11,6 +11,7 @@ import type { Step } from '../types'
 
 
 interface StripCtx {
+  steps: Record<string, Step>
   saves: Record<string, import('../types').Save>
   connections: Record<string, import('../types').Connection>
   owner: import('../types').User
@@ -36,7 +37,7 @@ function Crumb({ s, current, ctx }: { s: Step; current?: boolean; ctx: StripCtx 
 
 function StepMini({ s, current, who, ctx }: { s: Step; current?: boolean; who: string; ctx: StripCtx }) {
   const sv = ctx.saves[s.saveId]
-  const conn = Object.values(ctx.connections).find((c) => c.toStepId === s.id && c.authorId === who)
+  const conn = Object.values(ctx.connections).find((c) => c.toStepId === s.id && c.authorId === who && ctx.steps[c.fromStepId]?.trailId === s.trailId)
   const foreign = s.trailId !== OWN_TRAIL
   return (
     <div className="flex items-center gap-2">
@@ -124,14 +125,14 @@ function Detail({ stepId }: { stepId: string }) {
     if (!pinnedPeek.current) setPeek(null)
   }
   const linkedToOwn = Object.values(connections).some((c) => c.authorId === 'you' && (c.toStepId === stepId || c.fromStepId === stepId))
-  const incoming = Object.values(connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId)
+  const incoming = Object.values(connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId && allSteps[c.fromStepId]?.trailId === step.trailId)
   const because = stepId === 'k2' ? KEIIWIA_BECAUSE : incoming?.because ?? save.thought
   const thoughtAuthors = Array.from(new Set(thoughts.map((t) => t.authorId)))
   const timedThoughts = thoughts.filter((t) => t.t !== undefined && !t.parentId && t.stance !== 'linked your skirt')
   const her = owner.name === 'keiiwia' ? 'her' : 'their'
 
   const ctx: StripCtx = {
-    saves, connections, owner, peek, openDetail,
+    steps: allSteps, saves, connections, owner, peek, openDetail,
     onEnter: peekEnter, onLeave: peekLeave,
     onClick: (st) => {
       if (st.trailId === OWN_TRAIL) { openDetail(st.id); return }

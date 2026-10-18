@@ -9,7 +9,7 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
   const step = useStore((s) => s.steps[stepId])
   const save = useStore((s) => s.saves[step.saveId])
   const trail = useStore((s) => s.trails[step.trailId])
-  const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId))
+  const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId && s.steps[c.fromStepId]?.trailId === step.trailId))
   const openDetail = useStore((s) => s.openDetail)
   const selectStep = useStore((s) => s.selectStep)
   const startWalk = useStore((s) => s.startWalk)

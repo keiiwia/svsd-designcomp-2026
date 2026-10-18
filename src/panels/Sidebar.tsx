@@ -42,11 +42,15 @@ export function Sidebar() {
   const walking = useStore((s) => !!s.ui.walk)
   const selectedValid = useStore((s) => (selected ? !!s.steps[selected] : false))
   if (walking) return null
-  const defaultPanel = selected && selectedValid
-    ? <SelectionPanel key={`sel-${selected}`} stepId={selected} />
-    : ownCount < 2 && unplaced > 0
-      ? <SavesPanel key="saves" />
-      : <OverviewPanel key="overview" />
+  // the sidebar follows what you select, whatever it was showing before
+  if (selected && selectedValid) {
+    return (
+      <AnimatePresence mode="wait">
+        <SelectionPanel key={`sel-${selected}`} stepId={selected} />
+      </AnimatePresence>
+    )
+  }
+  const defaultPanel = ownCount < 2 && unplaced > 0 ? <SavesPanel key="saves" /> : <OverviewPanel key="overview" />
   return (
     <AnimatePresence mode="wait">
       {mode.kind === 'saves' && defaultPanel}
@@ -133,11 +137,15 @@ function ConnectionPanel({ connectionId }: { connectionId: string }) {
   const conn = useStore((s) => s.connections[connectionId])
   const steps = useStore((s) => s.steps)
   const saves = useStore((s) => s.saves)
+  const thoughts = useStore((s) => s.thoughts)
   const setSidebar = useStore((s) => s.setSidebar)
   const addThought = useStore((s) => s.addThought)
   const [val, setVal] = useState('')
   if (!conn) return null
-  const from = saves[steps[conn.fromStepId].saveId], to = saves[steps[conn.toStepId].saveId]
+  const fromThought = thoughts[conn.fromStepId]
+  const fromStep = steps[conn.fromStepId] ?? steps[fromThought?.stepId ?? '']
+  const from = fromStep ? saves[fromStep.saveId] : undefined
+  const to = saves[steps[conn.toStepId].saveId]
   const short = (t: string) => t.replace(/^(Embroidered|Painted|Folded)\s/, '').replace(/,.*$/, '')
   return (
     <Shell
@@ -145,11 +153,11 @@ function ConnectionPanel({ connectionId }: { connectionId: string }) {
       title={
         <>
           <span className="flex items-center gap-1">
-            {from.thumb && <img src={from.thumb} alt="" className="w-7 h-7 rounded-[6px] object-cover" />}
+            {fromThought ? <Avatar userId={fromThought.authorId} size={22} /> : from?.thumb && <img src={from.thumb} alt="" className="w-7 h-7 rounded-[6px] object-cover" />}
             <span className="text-ink-4 text-[12px]">→</span>
             {to.thumb && <img src={to.thumb} alt="" className="w-7 h-7 rounded-[6px] object-cover" />}
           </span>
-          <span className="text-[12px] text-ink-2 capitalize">{short(from.title)} → {short(to.title)}</span>
+          <span className="text-[12px] text-ink-2 capitalize">{fromThought ? `${users[fromThought.authorId].name}’s thought` : short(from?.title ?? '')} → {short(to.title)}</span>
         </>
       }
     >
@@ -170,7 +178,7 @@ function ConnectionPanel({ connectionId }: { connectionId: string }) {
         <Icon name="thought" size={13} className="text-ink-3" />
         <input value={val} onChange={(e) => setVal(e.target.value)} placeholder="Add a thought…" className="flex-1 bg-transparent outline-none text-[13px]" />
       </form>
-      <ThoughtThread stepId={conn.toStepId} excludeYou />
+      <ThoughtThread stepId={fromThought ? fromThought.stepId : conn.toStepId} excludeYou />
     </Shell>
   )
 }

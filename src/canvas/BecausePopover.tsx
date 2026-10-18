@@ -25,8 +25,9 @@ export function BecausePopover({ pos }: { pos: Pt }) {
     el.style.height = Math.max(60, el.scrollHeight) + 'px'
   }, [draft.text])
 
+  // the "from" end can be a thought bubble pulled onto the canvas
   const from = steps[draft.fromStepId], to = steps[draft.toStepId]
-  const excluded = new Set([from.saveId, to.saveId])
+  const excluded = new Set([from?.saveId, to?.saveId].filter(Boolean) as string[])
   const inTrail = Object.values(steps).filter((s) => s.trailId === OWN_TRAIL && !excluded.has(s.saveId)).map((s) => saves[s.saveId])
   const unplaced = Object.values(saves).filter((s) => s.ownerId === 'you' && !placed.includes(s.id) && !excluded.has(s.id))
   const canLink = draft.text.trim().length > 0

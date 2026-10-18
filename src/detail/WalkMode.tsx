@@ -33,7 +33,7 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
   const atEnd = walk.index > steps.length
   const step = atEnd ? steps[steps.length - 1] : steps[walk.index - 1]
   const save = step ? saves[step.saveId] : null
-  const conn = step ? Object.values(connections).find((c) => c.toStepId === step.id) : undefined
+  const conn = step ? Object.values(connections).find((c) => c.toStepId === step.id && allSteps[c.fromStepId]?.trailId === step.trailId) ?? Object.values(connections).find((c) => c.toStepId === step.id) : undefined
   const because = step?.id === 'k2' ? KEIIWIA_BECAUSE : conn?.because
   const becauseAuthor = conn ? users[conn.authorId] : owner
   const whose = own ? 'Your trail' : `${owner.name}’s trail`
