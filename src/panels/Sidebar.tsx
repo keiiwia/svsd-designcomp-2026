@@ -9,6 +9,7 @@ import { users, whoBranched, KEIIWIA_TRAIL } from '../data/seed'
 import type { Save, Thought } from '../types'
 import { fmtTime } from '../lib/geometry'
 import { OverviewPanel } from './OverviewPanel'
+import { Conversation } from './Conversation'
 import { SelectionPanel } from './SelectionPanel'
 import { OWN_TRAIL } from '../data/seed'
 
@@ -105,8 +106,13 @@ function SavesPanel() {
 
 function ThoughtItem({ t, depth = 0 }: { t: Thought; depth?: number }) {
   const u = users[t.authorId]
+  const setDrag = useDrag((s) => s.set)
   return (
-    <div className={clsx('flex flex-col gap-1', depth > 0 && 'ml-3 pl-3 border-l border-line')}>
+    <div
+      className={clsx('flex flex-col gap-1 rounded-[8px] -mx-1.5 px-1.5 py-1 cursor-grab active:cursor-grabbing hover:bg-paper/70', depth > 0 && 'ml-3 pl-3 border-l border-line', t.onCanvas && 'opacity-60')}
+      title="Drag this thought onto the canvas"
+      onPointerDown={(e) => { if (e.button === 0) { e.preventDefault(); setDrag({ kind: 'thought', thoughtId: t.id, client: { x: e.clientX, y: e.clientY }, overCanvas: false }) } }}
+    >
       <p className="flex items-center gap-1.5 text-[12px]">
         <Avatar userId={t.authorId} size={16} ring={false} />
         <span className="font-medium text-ink">{u.name}</span>
@@ -142,8 +148,6 @@ function ConnectionPanel({ connectionId }: { connectionId: string }) {
   const saves = useStore((s) => s.saves)
   const thoughts = useStore((s) => s.thoughts)
   const setSidebar = useStore((s) => s.setSidebar)
-  const addThought = useStore((s) => s.addThought)
-  const [val, setVal] = useState('')
   if (!conn) return null
   const fromThought = thoughts[conn.fromStepId]
   const fromStep = steps[conn.fromStepId] ?? steps[fromThought?.stepId ?? '']
@@ -165,7 +169,7 @@ function ConnectionPanel({ connectionId }: { connectionId: string }) {
       }
     >
       <div className="rounded-[12px] px-3.5 py-3 flex flex-col gap-2" style={{ background: users.you.noteBg }}>
-        <p className="text-[13px] leading-[18px] text-ink">Because {conn.because.charAt(0).toLowerCase() + conn.because.slice(1)}</p>
+        <p className="text-[13px] leading-[18px] text-ink">{conn.because}</p>
         {conn.attachments.length > 0 && (
           <div className="flex gap-1.5 flex-wrap">
             {conn.attachments.map((id) => (
@@ -177,11 +181,7 @@ function ConnectionPanel({ connectionId }: { connectionId: string }) {
         )}
         <p className="flex items-center gap-1.5 text-[10px] text-ink-3"><Avatar userId="you" size={12} ring={false} /> You</p>
       </div>
-      <form className="flex items-center gap-2 border border-line rounded-full px-3 py-2" onSubmit={(e) => { e.preventDefault(); if (val.trim()) { addThought(conn.toStepId, val.trim()); setVal('') } }}>
-        <Icon name="thought" size={13} className="text-ink-3" />
-        <input value={val} onChange={(e) => setVal(e.target.value)} placeholder="Add a thought…" className="flex-1 bg-transparent outline-none text-[13px]" />
-      </form>
-      <ThoughtThread stepId={fromThought ? fromThought.stepId : conn.toStepId} excludeYou />
+      <Conversation stepId={fromThought ? fromThought.stepId : conn.toStepId} compact />
     </Shell>
   )
 }

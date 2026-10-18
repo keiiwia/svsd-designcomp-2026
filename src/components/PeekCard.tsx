@@ -22,7 +22,7 @@ export function PeekCard({ step, onConnect, onWalk, className }: { step: Step; o
     >
       {because ? (
         <>
-          <p className="text-[10px] text-blue">because</p>
+          <p className="text-[10px] text-blue">why this came next</p>
           <p className="text-[12px] leading-[16px] text-ink">“{because}”</p>
         </>
       ) : (

@@ -178,11 +178,11 @@ function Detail({ stepId }: { stepId: string }) {
           </div>
 
           {isVideo && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full">
               <button onClick={() => setPlaying((p) => !p)} className="w-10 h-10 rounded-full bg-ink text-white flex items-center justify-center">
                 {playing ? <Icon name="pause" size={14} /> : <Icon name="play" size={12} />}
               </button>
-              <div className="flex flex-col gap-2 w-[520px] max-w-full">
+              <div className="flex flex-col gap-2 flex-1 min-w-0">
                 <div className="relative h-[34px] cursor-pointer" onClick={scrubTo}>
                   <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-line rounded" />
                   <div className="absolute left-0 top-1/2 h-[2px] bg-ink rounded" style={{ width: `${(t / duration) * 100}%` }} />

@@ -119,7 +119,7 @@ export function OverviewPanel() {
         <h2 className="text-[18px] font-semibold text-ink leading-tight">{trail.title}</h2>
         <p className="flex items-center gap-2 text-[11px] text-ink-3">
           <span className="inline-flex">{collaborators.map((id, i) => <Avatar key={id} userId={id} size={16} className={i > 0 ? '-ml-1' : ''} />)}</span>
-          {own.length} reference{own.length === 1 ? '' : 's'}{Object.values(connections).filter((c) => c.authorId === 'you').length > 0 && ` · ${Object.values(connections).filter((c) => c.authorId === 'you').length} because${Object.values(connections).filter((c) => c.authorId === 'you').length === 1 ? '' : 's'}`}
+          {own.length} reference{own.length === 1 ? '' : 's'}
         </p>
       </div>
 

@@ -42,7 +42,7 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
         </p>
         <p className="text-[12.5px] text-ink-2 leading-[18px] pt-1">“{save.thought}”</p>
         {because && !own && (
-          <p className="text-[12px] text-ink leading-[17px] bg-paper rounded-[10px] px-3 py-2 mt-1"><span className="text-blue text-[10px] block">{owner.name} because</span>{because}</p>
+          <p className="text-[12px] text-ink leading-[17px] bg-paper rounded-[10px] px-3 py-2 mt-1"><span className="text-blue text-[10px] block">{owner.name} on why this came next</span>{because}</p>
         )}
       </div>
       <div className="flex gap-2">

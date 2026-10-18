@@ -99,7 +99,7 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
                 <p className="font-serif italic font-semibold text-[40px] leading-[1.15] text-ink">
                   {own ? 'That’s as far as you’ve gone.' : `That’s as far as ${owner.name} has gone.`}
                 </p>
-                <p className="text-[16px] text-ink-2 max-w-[520px]">A trail ends where the next because hasn’t been written yet. Continue it with one of your saves, and the loop starts again.</p>
+                <p className="text-[16px] text-ink-2 max-w-[520px]">A trail ends where the next reason hasn’t been written yet. Continue it with one of your saves, and the loop starts again.</p>
                 <div className="flex items-center gap-3">
                   <button onClick={() => leaveTo(() => { if (!own) setBranchState(trail.id, 'expanded'); branchFromStep(step.id) })} className="flex items-center gap-2 bg-ink text-white rounded-full pl-[18px] pr-5 py-3 text-[14px] font-medium hover:bg-black">
                     <Icon name="branch" size={14} /> Branch from here
@@ -110,7 +110,7 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
               </>
             ) : walk.phase === 'because' && step ? (
               <>
-                <p className="flex items-center gap-2 font-mono text-[12px] text-blue"><Avatar userId={becauseAuthor.id} size={18} ring={false} /> {becauseAuthor.name === 'You' ? 'you wrote' : becauseAuthor.name} because</p>
+                <p className="flex items-center gap-2 font-mono text-[12px] text-blue"><Avatar userId={becauseAuthor.id} size={18} ring={false} /> {becauseAuthor.name === 'You' ? 'you, on why this came next' : `${becauseAuthor.name}, on why this came next`}</p>
                 <p className="font-serif italic font-semibold text-[44px] leading-[1.15] text-ink max-w-[720px]">{because ?? save?.thought}</p>
                 <div className="flex items-center gap-4 pt-2">
                   <button onClick={next} className="flex items-center gap-2 bg-ink text-white rounded-full pl-[18px] pr-5 py-3 text-[14px] font-medium hover:bg-black">
@@ -138,7 +138,7 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
                     <p className="text-[12px] text-ink-3">{save.mediumLabel} · {whose}</p>
                     <div className="flex flex-col items-start gap-2 pt-3">
                       <button onClick={next} className="flex items-center gap-2 bg-ink text-white rounded-full pl-[18px] pr-5 py-3 text-[14px] font-medium hover:bg-black">
-                        {walk.index < steps.length ? 'Next because' : 'To the end'} <span className="text-white/70">→</span>
+                        {walk.index < steps.length ? 'Next' : 'To the end'} <span className="text-white/70">→</span>
                       </button>
                       <div className="flex items-center gap-1 pt-1">
                         {!own && (
