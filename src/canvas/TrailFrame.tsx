@@ -112,8 +112,9 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
 
       {/* empty state */}
       {own && stepCount === 0 && (
-        <div className="absolute left-5 right-5 top-[44px] bottom-5 rounded-[12px] border-[1.4px] border-dashed border-ink-4/60 flex items-center justify-center text-ink-4 text-[22px] font-light">
-          +
+        <div className="absolute left-5 right-5 top-[44px] bottom-5 rounded-[12px] border-[1.4px] border-dashed border-ink-4/60 flex flex-col items-center justify-center gap-2 text-ink-4 px-4 text-center">
+          <span className="text-[22px] font-light leading-none">+</span>
+          <span className="text-[11px] leading-[15px]">Drag and drop references from your phone</span>
         </div>
       )}
     </motion.div>

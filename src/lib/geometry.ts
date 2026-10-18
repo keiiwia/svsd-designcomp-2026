@@ -24,8 +24,9 @@ export function stepRect(step: Step, trail: Trail, save: Save, sizes: Record<str
   return { x: p.x, y: p.y, w: s.w, h: s.h }
 }
 
-export const FRAME_PAD = { left: 24, top: 44, right: 24, bottom: 24 }
-export const EMPTY_FRAME: Size = { w: 160, h: 220 }
+// generous enough that ports, pin badges and floating toolbars stay inside the frame
+export const FRAME_PAD = { left: 32, top: 52, right: 32, bottom: 32 }
+export const EMPTY_FRAME: Size = { w: 200, h: 240 }
 
 export function frameRect(
   trail: Trail,

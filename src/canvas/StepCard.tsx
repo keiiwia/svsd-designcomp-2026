@@ -118,7 +118,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       onPointerLeave={onLeave}
       className={clsx(
         'absolute group flex flex-col bg-white overflow-visible rounded-[13px] border transition-shadow',
-        inDraft || connectHover ? 'border-blue border-2 shadow-focus' : selected ? 'border-ink border-[1.4px] shadow-card' : 'border-line shadow-card',
+        inDraft || connectHover ? 'border-blue border-2 shadow-focus' : selected ? 'border-blue border-[1.5px] shadow-card' : 'border-line shadow-card',
         own && tool !== 'hand' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
         ghost && 'opacity-90',
       )}

@@ -140,7 +140,7 @@ export function Toolbar() {
   return (
     <div data-panel className="absolute left-1/2 -translate-x-1/2 bottom-[40px]" style={{ zIndex: 96 }}>
       <div
-        className="relative bg-white border border-line rounded-[16px] p-2 flex items-center gap-1"
+        className="relative bg-white border border-line rounded-[18px] px-3 py-2.5 flex items-center gap-1.5"
         style={{ boxShadow: '0 10px 14px rgba(38,33,26,0.08), 0 1px 1px rgba(38,33,26,0.05)' }}
       >
         {/* Select ▾ */}
@@ -190,10 +190,10 @@ export function Toolbar() {
         <ToolButton icon="pin" label={pinned ? 'Unpin' : 'Pin'} shortcut="P" active={pinned} quiet={!!flash}
           onClick={() => { closeMenu(); if (selected) togglePin(selected); else say('Select a reference to pin') }} />
 
-        <span className="w-px h-6 bg-line mx-0.5" />
+        <span className="w-px h-6 bg-line-strong mx-2" />
 
         {/* Layers */}
-        <div className="flex items-center gap-0.5 bg-paper rounded-[10px] p-1">
+        <div className="flex items-center gap-1 bg-paper rounded-[10px] p-1">
           <LayerToggle icon="layerReference" label="Reference" state={layers.reference ? 'on' : 'off'} onClick={() => toggleLayer('reference')} />
           <LayerToggle icon="layerYours" label="Yours" state={layers.yours ? 'on' : 'off'} onClick={() => toggleLayer('yours')} />
           <LayerToggle icon="layerEveryone" label="Everyone" state={!nearbyVisible ? 'locked' : layers.everyone ? 'on' : 'off'}

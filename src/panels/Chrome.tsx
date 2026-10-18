@@ -5,13 +5,12 @@ import { OWN_TRAIL } from '../data/seed'
 export function FilePanel() {
   const title = useStore((s) => s.trails[OWN_TRAIL].title)
   return (
-    <div data-panel className="absolute left-6 top-6 bg-white rounded-[18px] shadow-panel flex items-center gap-[15px] pl-[15px] pr-[18px] py-3" style={{ zIndex: 80 }}>
-      <span className="w-9 h-9 rounded-[9px] bg-ink text-white font-bold text-[18px] flex items-center justify-center">T</span>
-      <span className="flex flex-col gap-0.5 whitespace-nowrap">
-        <span className="text-[18px] font-semibold text-[#1e1e1e] tracking-[0.09px]">{title}</span>
-        <span className="text-[16px] text-[#757575] tracking-[0.08px]">Your trails</span>
+    <div data-panel className="absolute left-6 top-6 bg-white rounded-[14px] shadow-panel flex items-center gap-3 pl-3 pr-4 py-2.5" style={{ zIndex: 80 }}>
+      <span className="w-7 h-7 rounded-[8px] bg-ink text-white font-bold text-[14px] flex items-center justify-center">T</span>
+      <span className="flex flex-col whitespace-nowrap">
+        <span className="text-[14px] font-semibold text-ink leading-[18px]">{title}</span>
+        <span className="text-[12px] text-ink-3 leading-[16px]">Your trails</span>
       </span>
-      <Icon name="chev" size={20} className="text-ink-2" />
     </div>
   )
 }

@@ -6,7 +6,7 @@ import { Avatar, Icon, KindDot } from '../components/ui'
 import { users } from '../data/seed'
 import type { Save, Step, Trail } from '../types'
 import type { Pt } from '../lib/geometry'
-import { useMotion } from '../lib/motion'
+import { spring, useMotion } from '../lib/motion'
 
 export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; save: Save; trail: Trail; pos: Pt; order?: number }) {
   const [hover, setHover] = useState(false)
@@ -22,7 +22,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: mo.nearbyDelay + order * mo.nearbyStagger, ease: 'easeOut' }}
       className="absolute"
-      style={{ left: pos.x, top: pos.y, zIndex: hover ? 50 : 8 }}
+      style={{ left: pos.x, top: pos.y, zIndex: hover ? 50 : 14 }}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
       onPointerDown={(e) => e.stopPropagation()}
@@ -38,7 +38,12 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
           <span className="flex items-center gap-1.5 text-[10px] text-ink-3"><Avatar userId={trail.ownerId} size={13} ring={false} /> {u.name}’s trail</span>
         </button>
       ) : (
-        <div className={clsx('w-[240px] bg-white rounded-[14px] p-3 flex flex-col gap-2.5 shadow-card-lift border border-line -translate-x-8 -translate-y-3')}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={spring(mo.cardDrop)}
+          className={clsx('w-[240px] bg-white rounded-[14px] p-3 flex flex-col gap-2.5 shadow-card-lift border border-line -translate-x-8 -translate-y-3')}
+          style={{ transformOrigin: 'top left' }}
+        >
           <p className="text-[12px] leading-[16px] text-ink">“{save.thought}”</p>
           {save.thumb && (
             <div className="w-full h-[110px] rounded-[8px] overflow-hidden"><img src={save.thumb} alt="" className="w-full h-full object-cover" /></div>
@@ -55,7 +60,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
             </button>
             <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-[11px] text-ink-2 px-2 hover:text-ink">Open</button>
           </div>
-        </div>
+        </motion.div>
       )}
     </motion.div>
   )
