@@ -36,7 +36,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
           <span className="flex items-center gap-1.5 text-[10px] text-ink-3"><Avatar userId={trail.ownerId} size={13} ring={false} /> {u.name}’s trail</span>
         </button>
       ) : (
-        <div className={clsx('w-[210px] bg-white rounded-[14px] p-3 flex flex-col gap-2.5 shadow-card-lift border border-line -translate-x-5 -translate-y-3')}>
+        <div className={clsx('w-[240px] bg-white rounded-[14px] p-3 flex flex-col gap-2.5 shadow-card-lift border border-line -translate-x-8 -translate-y-3')}>
           <p className="text-[12px] leading-[16px] text-ink">“{save.thought}”</p>
           {save.thumb && (
             <div className="w-full h-[110px] rounded-[8px] overflow-hidden"><img src={save.thumb} alt="" className="w-full h-full object-cover" /></div>

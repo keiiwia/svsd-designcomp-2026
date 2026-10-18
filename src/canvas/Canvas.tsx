@@ -49,7 +49,7 @@ export function Canvas() {
       const r = el.getBoundingClientRect()
       if (r.width < 10 || r.height < 10) return
       centered.current = true
-      setCamera({ x: Math.round((r.width - DESIGN.w) / 2), y: Math.round((r.height - DESIGN.h) / 2), scale: 1 })
+      setCamera({ x: Math.max(0, Math.round((r.width - DESIGN.w) / 2)), y: Math.max(0, Math.round((r.height - DESIGN.h) / 2)), scale: 1 })
     }
     tryCenter()
     const ro = new ResizeObserver(tryCenter)

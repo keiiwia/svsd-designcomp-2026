@@ -70,5 +70,6 @@ function recenter() {
   const el = document.querySelector('[data-canvas]') as HTMLElement | null
   if (!el) return
   const r = el.getBoundingClientRect()
-  useStore.getState().setCamera({ x: Math.round((r.width - 1440) / 2), y: Math.round((r.height - 1024) / 2), scale: 1 })
+  // centre the 1440×1024 composition, but never push its top-left off a smaller screen
+  useStore.getState().setCamera({ x: Math.max(0, Math.round((r.width - 1440) / 2)), y: Math.max(0, Math.round((r.height - 1024) / 2)), scale: 1 })
 }

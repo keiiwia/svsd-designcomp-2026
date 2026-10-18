@@ -141,18 +141,26 @@ export const useStore = create<TrailsState>()(
           id, trailId: OWN_TRAIL, saveId, index: own.length + 1,
           pos: { x: canvasPos.x - trail.origin.x, y: canvasPos.y - trail.origin.y },
         }
+        // placing never steals the sidebar: the rest of your phone saves stay in reach
         set({
           steps: { ...s.steps, [id]: step },
           placed: [...s.placed, saveId],
           seq: s.seq + 1,
-          ui: { ...s.ui, selectedStepId: id },
         })
         return id
       },
 
       moveStep: (stepId, pos) => set((s) => ({ steps: { ...s.steps, [stepId]: { ...s.steps[stepId], pos } } })),
       moveNote: (id, pos) => set((s) => ({ thoughts: { ...s.thoughts, [id]: { ...s.thoughts[id], onCanvas: pos } } })),
-      selectStep: (stepId) => set((s) => ({ ui: { ...s.ui, selectedStepId: stepId } })),
+      selectStep: (stepId) =>
+        set((s) => ({
+          ui: {
+            ...s.ui,
+            selectedStepId: stepId,
+            // picking a card by hand dismisses an action panel so the selection can show
+            sidebar: stepId && (s.ui.sidebar.kind === 'connection' || s.ui.sidebar.kind === 'branchFrom') ? { kind: 'saves' } : s.ui.sidebar,
+          },
+        })),
       renameTrail: (trailId, title) => set((s) => ({ trails: { ...s.trails, [trailId]: { ...s.trails[trailId], title } } })),
       setEditingTitle: (editingTitle) => set((s) => ({ ui: { ...s.ui, editingTitle } })),
 
@@ -203,6 +211,7 @@ export const useStore = create<TrailsState>()(
           next.ui = { ...s.ui, selectedStepId: null, layers: { ...s.ui.layers, everyone: true } }
         }
         set(next)
+        if (crossTrail) requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
       },
 
       openDetail: (stepId) => set((s) => ({ ui: { ...s.ui, detailStepId: stepId, peekStepId: null } })),
@@ -216,9 +225,14 @@ export const useStore = create<TrailsState>()(
           branchState: { ...s.branchState, [step.trailId]: bs === 'hidden' || !bs ? 'ghost' : bs },
           ui: { ...s.ui, detailStepId: null, connectHintStepId: stepId, sidebar: { kind: 'saves' } },
         })
+        // bring her step and your trail into the same view
+        requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
       },
 
-      setBranchState: (trailId, st) => set((s) => ({ branchState: { ...s.branchState, [trailId]: st } })),
+      setBranchState: (trailId, st) => {
+        set((s) => ({ branchState: { ...s.branchState, [trailId]: st } }))
+        if (st === 'expanded') requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
+      },
       setSidebar: (sidebar) => set((s) => ({ ui: { ...s.ui, sidebar } })),
 
       addThought: (stepId, text, t, stance, parentId) => {

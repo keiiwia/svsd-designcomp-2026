@@ -142,7 +142,10 @@ export function OverviewPanel() {
           <span className="text-ink-2 font-medium">Notes <span className="text-ink-3 font-normal">· Edited today</span></span>
           <button onClick={() => setNotesOpen((o) => !o)} className="text-ink-3 hover:text-ink flex items-center gap-1"><Icon name="source" size={10} /> {notesOpen ? 'Close' : 'Open'}</button>
         </div>
-        {notesOpen && (
+        {notesOpen && trail.title === 'Untitled trail' && (
+          <p className="text-[12px] text-ink-3 leading-[17px]">Name the trail and the notes open up. Write what these have in common once you see it.</p>
+        )}
+        {notesOpen && trail.title !== 'Untitled trail' && (
           <>
             <input value={note?.title ?? ''} onChange={(e) => updateTrailNote(OWN_TRAIL, { title: e.target.value })} placeholder="A title for what you’re noticing"
               className="text-[14px] font-semibold text-ink bg-transparent outline-none" />

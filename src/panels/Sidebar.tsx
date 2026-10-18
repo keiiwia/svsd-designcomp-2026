@@ -42,8 +42,9 @@ export function Sidebar() {
   const walking = useStore((s) => !!s.ui.walk)
   const selectedValid = useStore((s) => (selected ? !!s.steps[selected] : false))
   if (walking) return null
-  // the sidebar follows what you select, whatever it was showing before
-  if (selected && selectedValid) {
+  // explicit actions (a fresh link, branching from a step) keep their panel; otherwise the sidebar follows what you select
+  const explicit = mode.kind === 'connection' || mode.kind === 'branchFrom'
+  if (!explicit && selected && selectedValid) {
     return (
       <AnimatePresence mode="wait">
         <SelectionPanel key={`sel-${selected}`} stepId={selected} />
@@ -120,7 +121,8 @@ function ThoughtItem({ t, depth = 0 }: { t: Thought; depth?: number }) {
 export function ThoughtThread({ stepId, excludeYou }: { stepId: string; excludeYou?: boolean }) {
   const all = useStore((s) => s.thoughts)
   const thoughts = useMemo(() => Object.values(all).filter((t) => t.stepId === stepId), [all, stepId])
-  const roots = thoughts.filter((t) => !t.parentId && !(excludeYou && t.authorId === 'you'))
+  // your because is already shown above the thread; your other thoughts belong in it
+  const roots = thoughts.filter((t) => !t.parentId && !(excludeYou && t.authorId === 'you' && t.stance === 'linked your skirt'))
   return (
     <div className="flex flex-col gap-4">
       {roots.map((t) => (
