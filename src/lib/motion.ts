@@ -26,21 +26,23 @@ export interface MotionTokens {
 }
 
 export const defaultMotion: MotionTokens = {
-  cardDrop: { stiffness: 380, damping: 30, mass: 1 },
-  cardStagger: 0.06,
-  because: { stiffness: 420, damping: 32, mass: 1 },
-  edgeDraw: 0.5,
-  crossDraw: 0.7,
-  chipDelay: 0.3,
-  camera: { duration: 0.55, ease: [0.3, 0.7, 0.2, 1] },
-  pageTurn: { duration: 0.42, ease: [0.3, 0.7, 0.2, 1] },
-  pageSlide: 60,
-  pageTilt: 10,
-  nearbyDelay: 0.35,
-  nearbyStagger: 0.09,
-  panelFade: 0.18,
-  modalOpen: { stiffness: 380, damping: 34, mass: 1 },
-  kenBurns: 40,
+  // Tuned for screen recording: springs settle in ~0.6s with a soft overshoot, lines take
+  // long enough to be seen drawing, and nothing snaps.
+  cardDrop: { stiffness: 230, damping: 26, mass: 1 },
+  cardStagger: 0.11,
+  because: { stiffness: 260, damping: 28, mass: 1 },
+  edgeDraw: 0.8,
+  crossDraw: 1.1,
+  chipDelay: 0.55,
+  camera: { duration: 0.8, ease: [0.25, 0.8, 0.25, 1] },
+  pageTurn: { duration: 0.7, ease: [0.3, 0.75, 0.2, 1] },
+  pageSlide: 48,
+  pageTilt: 8,
+  nearbyDelay: 0.6,
+  nearbyStagger: 0.12,
+  panelFade: 0.24,
+  modalOpen: { stiffness: 260, damping: 30, mass: 1 },
+  kenBurns: 45,
 }
 
 export const useMotion = create<MotionTokens>(() => ({ ...defaultMotion }))
