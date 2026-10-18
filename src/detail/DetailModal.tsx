@@ -8,6 +8,68 @@ import { fmtTime } from '../lib/geometry'
 import { ThoughtThread } from '../panels/Sidebar'
 import type { Step } from '../types'
 
+
+interface StripCtx {
+  saves: Record<string, import('../types').Save>
+  connections: Record<string, import('../types').Connection>
+  owner: import('../types').User
+  peek: string | null
+  openDetail: (id: string | null) => void
+  onEnter: (id: string) => void
+  onLeave: () => void
+  onClick: (s: Step) => void
+  onConnect: (id: string) => void
+}
+
+function Crumb({ s, current, ctx }: { s: Step; current?: boolean; ctx: StripCtx }) {
+  return (
+    <button
+      onClick={() => (current ? null : ctx.openDetail(s.id))}
+      className={clsx('px-3 py-2.5 rounded-[12px] text-[12px] font-medium whitespace-nowrap', current ? 'bg-white border-[1.25px] border-ink text-ink' : 'bg-paper text-ink-2 hover:bg-frame')}
+    >
+      {ctx.saves[s.saveId].title}
+    </button>
+  )
+}
+
+function StepMini({ s, current, who, ctx }: { s: Step; current?: boolean; who: string; ctx: StripCtx }) {
+  const sv = ctx.saves[s.saveId]
+  const conn = Object.values(ctx.connections).find((c) => c.toStepId === s.id && c.authorId === who)
+  const foreign = s.trailId !== OWN_TRAIL
+  return (
+    <div className="flex items-center gap-2">
+      {conn && (
+        <span className="text-[10px] leading-[13px] text-ink-2 bg-white border border-line rounded-[6px] px-1.5 py-1 max-w-[86px] line-clamp-2">{conn.because}</span>
+      )}
+      <div className="relative" onMouseEnter={() => !current && foreign && ctx.onEnter(s.id)} onMouseLeave={ctx.onLeave}>
+        <button
+          onClick={() => !current && ctx.onClick(s)}
+          className={clsx('flex flex-col rounded-[10px] overflow-hidden border text-left w-[78px]', current ? 'border-blue border-[1.5px] shadow-focus' : 'border-line bg-white hover:border-ink-4')}
+        >
+          {sv.thumb && <img src={sv.thumb} alt="" className="w-full h-[46px] object-cover" />}
+          <span className="px-1.5 py-1 text-[10px] font-medium text-ink leading-tight">{sv.title}</span>
+        </button>
+        <AnimatePresence>
+          {ctx.peek === s.id && (
+            <motion.div
+              initial={{ opacity: 0, y: 6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.16 }}
+              className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] w-[200px] bg-white rounded-[12px] shadow-card-lift border border-line p-3 flex flex-col gap-2 text-left"
+              style={{ zIndex: 5 }}
+            >
+              <p className="text-[10px] text-blue">because</p>
+              <p className="text-[12px] text-ink">“{conn?.because ?? sv.thought}”</p>
+              <p className="text-[11px] text-ink-2 bg-paper rounded-[8px] p-2">{sv.thought}</p>
+              <p className="text-[10px] text-ink-3 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ background: ctx.owner.color }} /> {ctx.owner.name}’s trail · step {s.index}</p>
+              <button onClick={() => ctx.onConnect(s.id)} className="w-fit flex items-center gap-1.5 bg-ink text-white rounded-full px-2.5 py-1.5 text-[11px] font-medium"><Icon name="connect" size={11} /> Make a connection</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
 function parseDuration(d?: string) {
   if (!d) return 130
   const [m, s] = d.split(':').map(Number)
@@ -47,14 +109,13 @@ function Detail({ stepId }: { stepId: string }) {
   const now = Math.round(t)
   useEffect(() => {
     if (!playing || !isVideo) return
-    let raf = 0, last = performance.now()
-    const tick = (ts: number) => {
+    let last = performance.now()
+    const id = window.setInterval(() => {
+      const ts = performance.now()
       const dt = (ts - last) / 1000; last = ts
       setT((v) => (v + dt > duration ? 0 : v + dt))
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    }, 125)
+    return () => window.clearInterval(id)
   }, [playing, isVideo, duration])
   const scrubTo = (e: React.MouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -74,51 +135,18 @@ function Detail({ stepId }: { stepId: string }) {
   const incoming = Object.values(connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId)
   const because = stepId === 'k2' ? KEIIWIA_BECAUSE : incoming?.because ?? save.thought
   const thoughtAuthors = Array.from(new Set(thoughts.map((t) => t.authorId)))
-  const timedThoughts = thoughts.filter((t) => t.t !== undefined && !t.parentId)
+  const timedThoughts = thoughts.filter((t) => t.t !== undefined && !t.parentId && t.stance !== 'linked your skirt')
   const her = owner.name === 'keiiwia' ? 'her' : 'their'
 
-  const Crumb = ({ s, current }: { s: Step; current?: boolean }) => (
-    <button
-      onClick={() => (current ? null : openDetail(s.id))}
-      className={clsx('px-3 py-2.5 rounded-[12px] text-[12px] font-medium whitespace-nowrap', current ? 'bg-white border-[1.25px] border-ink text-ink' : 'bg-paper text-ink-2 hover:bg-frame')}
-    >
-      {saves[s.saveId].title}
-    </button>
-  )
-
-  const StepMini = ({ s, current, who }: { s: Step; current?: boolean; who: string }) => {
-    const sv = saves[s.saveId]
-    const conn = Object.values(connections).find((c) => c.toStepId === s.id && c.authorId === who)
-    return (
-      <div className="flex items-center gap-2">
-        {conn && (
-          <span className="text-[10px] leading-[13px] text-ink-2 bg-white border border-line rounded-[6px] px-1.5 py-1 max-w-[86px] line-clamp-2">{conn.because}</span>
-        )}
-        <div className="relative" onMouseEnter={() => !current && s.trailId !== OWN_TRAIL && peekEnter(s.id)} onMouseLeave={peekLeave}>
-          <button
-            onClick={() => {
-              if (current) return
-              if (s.trailId === OWN_TRAIL) { openDetail(s.id); return }
-              pinnedPeek.current = !(pinnedPeek.current && peek === s.id)
-              setPeek(pinnedPeek.current ? s.id : null)
-            }}
-            className={clsx('flex flex-col rounded-[10px] overflow-hidden border text-left w-[78px]', current ? 'border-blue border-[1.5px] shadow-focus' : 'border-line bg-white hover:border-ink-4')}
-          >
-            {sv.thumb && <img src={sv.thumb} alt="" className="w-full h-[46px] object-cover" />}
-            <span className="px-1.5 py-1 text-[10px] font-medium text-ink leading-tight">{sv.title}</span>
-          </button>
-          {peek === s.id && (
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] w-[190px] bg-white rounded-[12px] shadow-card-lift border border-line p-3 flex flex-col gap-2 text-left" style={{ zIndex: 5 }}>
-              <p className="text-[10px] text-blue">because</p>
-              <p className="text-[12px] text-ink">“{conn?.because ?? sv.thought}”</p>
-              <p className="text-[11px] text-ink-2 bg-paper rounded-[8px] p-2">{sv.thought}</p>
-              <p className="text-[10px] text-ink-3 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ background: owner.color }} /> {owner.name}’s trail · step {s.index}</p>
-              <button onClick={() => { setPeek(null); makeConnectionFrom(s.id) }} className="w-fit flex items-center gap-1.5 bg-ink text-white rounded-full px-2.5 py-1.5 text-[11px] font-medium"><Icon name="connect" size={11} /> Make a connection</button>
-            </div>
-          )}
-        </div>
-      </div>
-    )
+  const ctx: StripCtx = {
+    saves, connections, owner, peek, openDetail,
+    onEnter: peekEnter, onLeave: peekLeave,
+    onClick: (st) => {
+      if (st.trailId === OWN_TRAIL) { openDetail(st.id); return }
+      pinnedPeek.current = !(pinnedPeek.current && peek === st.id)
+      setPeek(pinnedPeek.current ? st.id : null)
+    },
+    onConnect: (id) => { pinnedPeek.current = false; setPeek(null); makeConnectionFrom(id) },
   }
 
   return (
@@ -186,7 +214,7 @@ function Detail({ stepId }: { stepId: string }) {
               {trailSteps.slice(0, 3).map((s, i) => (
                 <span key={s.id} className="flex items-center gap-2.5">
                   {i > 0 && <span className="text-ink-4 text-[13px]">→</span>}
-                  <Crumb s={s} current={s.id === stepId} />
+                  <Crumb s={s} current={s.id === stepId} ctx={ctx} />
                 </span>
               ))}
               {trailSteps.length > 3 && (
@@ -200,7 +228,7 @@ function Detail({ stepId }: { stepId: string }) {
                 <div className="flex flex-col gap-2">
                   <p className="flex items-center gap-1.5 text-[11px] text-ink-2"><Avatar userId="you" size={14} ring={false} /> Your trail</p>
                   <div className="flex items-center gap-3">
-                    {ownSteps.map((s) => <StepMini key={s.id} s={s} who="you" />)}
+                    {ownSteps.map((s) => <StepMini key={s.id} s={s} who="you" ctx={ctx} />)}
                   </div>
                 </div>
               )}
@@ -210,7 +238,7 @@ function Detail({ stepId }: { stepId: string }) {
                   {trail.branchedFrom && (
                     <span className="text-[10px] text-ink-3 flex items-center gap-1 max-w-[90px] leading-tight"><Avatar userId={trail.branchedFrom.ownerId} size={12} ring={false} /> started from {users[trail.branchedFrom.ownerId].name}’s {trail.branchedFrom.trailTitle}</span>
                   )}
-                  {trailSteps.map((s) => <StepMini key={s.id} s={s} current={s.id === stepId} who={trail.ownerId} />)}
+                  {trailSteps.map((s) => <StepMini key={s.id} s={s} current={s.id === stepId} who={trail.ownerId} ctx={ctx} />)}
                 </div>
               </div>
             </div>
