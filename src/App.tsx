@@ -10,6 +10,8 @@ import { useStore } from './store'
 import { useCanvasApi } from './canvas/CanvasContext'
 
 const MotionTuner = import.meta.env.DEV ? lazy(() => import('./dev/MotionTuner')) : null
+// Agentation: annotate the running UI and the notes reach the coding agent (dev only)
+const Agentation = import.meta.env.DEV ? lazy(() => import('agentation').then((m) => ({ default: m.Agentation }))) : null
 
 export default function App() {
   const [tuner, setTuner] = useState(() => import.meta.env.DEV && new URLSearchParams(location.search).has('tune'))
@@ -51,6 +53,7 @@ export default function App() {
       <DetailModal />
       <WalkMode />
       {tuner && MotionTuner && <Suspense fallback={null}><MotionTuner /></Suspense>}
+      {Agentation && <Suspense fallback={null}><Agentation endpoint="http://localhost:4747" /></Suspense>}
     </div>
   )
 }
