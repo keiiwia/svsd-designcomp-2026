@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { Avatar } from '../components/ui'
@@ -5,6 +6,45 @@ import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geo
 import type { Connection, Thought } from '../types'
 import { useDrag } from './drag'
 import { useMotion } from '../lib/motion'
+
+/** A because chip you can rewrite at any point: click, type, Enter. Escape keeps the old words. */
+function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number }) {
+  const update = useStore((s) => s.updateConnection)
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(because)
+  const ref = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => { if (editing) { setVal(because); setTimeout(() => { ref.current?.focus(); ref.current?.select() }, 0) } }, [editing, because])
+  const commit = () => { const t = val.trim(); if (t) update(id, t); setEditing(false) }
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay, duration: 0.25 }}
+      className={blue
+        ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-text'
+        : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-text leading-[14px]'}
+      style={{ left: pos.x, top: pos.y, zIndex: editing ? 60 : 15, width: 'max-content', maxWidth: editing ? 240 : blue ? 260 : 150, x: '-50%', y: '-50%', outline: editing ? '1.5px solid rgba(74,98,196,0.6)' : 'none' }}
+      title={editing ? undefined : `${because} · click to rewrite`}
+      onPointerDown={stop}
+      onClick={(e) => { stop(e); if (!editing) setEditing(true) }}
+    >
+      {blue && <Avatar userId={authorId} size={14} />}
+      {editing ? (
+        <textarea
+          ref={ref}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commit() } if (e.key === 'Escape') { e.preventDefault(); setEditing(false) } }}
+          onPointerDown={stop}
+          rows={2}
+          className={blue ? 'bg-transparent outline-none text-white w-[200px] resize-none leading-[14px]' : 'bg-transparent outline-none text-ink w-[200px] resize-none leading-[14px]'}
+        />
+      ) : (
+        <span className={blue ? 'truncate block max-w-[230px]' : 'line-clamp-3'}>{because}</span>
+      )}
+    </motion.div>
+  )
+}
 
 function cubic(a: Pt, c1: Pt, c2: Pt, b: Pt, t: number): Pt {
   const mt = 1 - t
@@ -90,13 +130,7 @@ export function EdgesLayer({
           )}
         </g>,
       )
-      if (showChip) chips.push(
-        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: mo.chipDelay, duration: 0.25 }}
-          className="absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card max-w-[150px] line-clamp-3 leading-[14px]"
-          style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
-          {c.because}
-        </motion.div>,
-      )
+      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} />)
     } else {
       // blue curve from the bottom of yours to the spot on theirs
       const s = { x: a.x + a.w / 2, y: a.y + a.h }
@@ -112,13 +146,7 @@ export function EdgesLayer({
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
       )
-      if (showChip) chips.push(
-        <motion.div key={c.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: mo.chipDelay + 0.15, duration: 0.25 }}
-          className="absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card whitespace-nowrap max-w-[260px] overflow-hidden text-ellipsis"
-          style={{ left: mid.x, top: mid.y, zIndex: 15, width: 'max-content', x: '-50%', y: '-50%' }} title={c.because}>
-          <Avatar userId={c.authorId} size={14} /> <span className="truncate">{c.because}</span>
-        </motion.div>,
-      )
+      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} />)
     }
   }
 

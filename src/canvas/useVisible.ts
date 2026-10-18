@@ -61,6 +61,8 @@ export function useVisible() {
         const shown = tSteps.filter((s) => linked.has(s.id))
         if (shown.length === 0) continue
         const rect = frameRect(trail, shown, saves, [], sizes, 460)
+        // the "draw from one of yours to here" hint hangs below the card while a link is waiting
+        if (bs === 'ghost') rect.h += 40
         frames.push({ trail, rect, state: bs, steps: shown })
         visibleSteps.push(...shown)
       }

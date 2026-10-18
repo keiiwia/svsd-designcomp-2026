@@ -80,6 +80,7 @@ export interface TrailsState {
   connectSaveToStep: (saveId: string, stepId: string) => void
   toggleLayer: (k: keyof Layers) => void
   togglePin: (stepId: string) => void
+  updateConnection: (id: string, because: string) => void
   addLink: (url: string) => void
   placeNextSave: () => boolean
   startWalk: (trailId: string, index?: number) => void
@@ -342,6 +343,8 @@ export const useStore = create<TrailsState>()(
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
       togglePin: (stepId) => set((s) => ({ pinned: { ...s.pinned, [stepId]: !s.pinned[stepId] } })),
+      updateConnection: (id, because) =>
+        set((s) => (s.connections[id] ? { connections: { ...s.connections, [id]: { ...s.connections[id], because } } } : {})),
 
       // Add link: a pointer reference (a still, quote or timestamp plus a link out)
       addLink: (url) => {

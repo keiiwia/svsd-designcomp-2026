@@ -102,8 +102,11 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
             disabled={state === 'ghost'}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); setBranchState(trail.id, 'expanded'); setSidebar({ kind: 'branch', trailId: trail.id }) }}
-            className={clsx('flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium',
-              state === 'ghost' ? 'bg-paper text-ink-4 border border-line' : 'bg-ink text-white hover:bg-black')}
+            title={state === 'ghost' ? 'Link one of yours to her step first' : undefined}
+            className={clsx('flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors',
+              state === 'ghost'
+                ? 'bg-paper text-ink-4 border border-line hover:bg-frame hover:text-ink-2 hover:border-ink-4/60 cursor-not-allowed'
+                : 'bg-ink text-white hover:bg-black hover:shadow-card')}
           >
             <Icon name="plus" size={11} /> Add {owner.name}’s branch
           </button>

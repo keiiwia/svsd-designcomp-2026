@@ -18,7 +18,7 @@ function Shell({ children, title, onClose, width = 360 }: { children: React.Reac
       data-panel
       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
       transition={{ duration: useMotion.getState().panelFade }}
-      className="absolute right-6 top-6 bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-6 flex flex-col gap-5 max-h-[calc(100%-140px)] overflow-y-auto"
+      className="absolute right-6 top-6 bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-6 flex flex-col gap-5 bottom-[40px] overflow-y-auto"
       style={{ width, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
