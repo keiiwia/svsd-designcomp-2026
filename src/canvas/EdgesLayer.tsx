@@ -30,9 +30,10 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
   return (
     <motion.div
       ref={box}
-      layout
-      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-      transition={{ layout: spring(mo.because), opacity: { delay, duration: 0.25 }, scale: { delay, duration: 0.25 } }}
+      // no layout animation here: it re-measures on every pan and makes chips trail the camera
+      initial={{ opacity: editing ? 1 : 0, scale: editing ? 0.6 : 0.9 }} animate={{ opacity: 1, scale: 1 }}
+      transition={editing ? spring(mo.because) : { opacity: { delay, duration: 0.25 }, scale: { delay, duration: 0.25 } }}
+      key={editing ? 'edit' : 'chip'}
       className={editing
         ? 'absolute flex flex-col gap-2.5 bg-blue text-white rounded-[16px] px-4 py-3.5 shadow-because cursor-text overflow-hidden'
         : active || blue
@@ -46,7 +47,7 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
     >
       {!editing && (blue || active) && <Avatar userId={authorId} size={14} />}
       {editing ? (
-        <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.08 }} className="flex flex-col gap-2.5">
+        <motion.div initial={{ opacity: 0, scale: 0.78 }} animate={{ opacity: 1, scale: 1 }} transition={spring(mo.because)} style={{ transformOrigin: 'center' }} className="flex flex-col gap-2.5">
           <span className="flex items-center gap-2 text-[12px] font-medium text-white/80"><Avatar userId={authorId} size={18} /> Because</span>
           <textarea
             ref={ref}
