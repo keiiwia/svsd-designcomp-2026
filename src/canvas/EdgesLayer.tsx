@@ -5,48 +5,62 @@ import { Avatar } from '../components/ui'
 import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geometry'
 import type { Connection, Thought } from '../types'
 import { useDrag } from './drag'
-import { useMotion } from '../lib/motion'
+import { spring, useMotion } from '../lib/motion'
 
-/** A because chip you can rewrite at any point: click, type, Enter. Escape keeps the old words. */
+/** A because chip: click selects it (blue), click again to rewrite. Enter saves, Escape keeps the old words. */
 function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number }) {
   const update = useStore((s) => s.updateConnection)
+  const mo = useMotion()
+  const [selected, setSelected] = useState(false)
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(because)
   const ref = useRef<HTMLTextAreaElement>(null)
+  const box = useRef<HTMLDivElement>(null)
   useEffect(() => { if (editing) { setVal(because); setTimeout(() => { ref.current?.focus(); ref.current?.select() }, 0) } }, [editing, because])
-  const commit = () => { const t = val.trim(); if (t) update(id, t); setEditing(false) }
+  // click anywhere else clears the selection
+  useEffect(() => {
+    if (!selected) return
+    const away = (e: PointerEvent) => { if (box.current && !box.current.contains(e.target as Node)) { setSelected(false); setEditing(false) } }
+    window.addEventListener('pointerdown', away, true)
+    return () => window.removeEventListener('pointerdown', away, true)
+  }, [selected])
+  const commit = () => { const t = val.trim(); if (t) update(id, t); setEditing(false); setSelected(false) }
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+  const active = selected || editing
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay, duration: 0.25 }}
+      ref={box}
+      layout
+      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+      transition={{ layout: spring(mo.because), opacity: { delay, duration: 0.25 }, scale: { delay, duration: 0.25 } }}
       className={editing
-        ? 'absolute flex flex-col gap-2.5 bg-blue text-white rounded-[16px] px-4 py-3.5 shadow-because cursor-text'
-        : blue
-          ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-text'
-          : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-text leading-[14px]'}
-      style={{ left: pos.x, top: pos.y, zIndex: editing ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue ? 260 : 150, x: '-50%', y: '-50%' }}
-      title={editing ? undefined : `${because} · click to rewrite`}
+        ? 'absolute flex flex-col gap-2.5 bg-blue text-white rounded-[16px] px-4 py-3.5 shadow-because cursor-text overflow-hidden'
+        : active || blue
+          ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-pointer overflow-hidden'
+          : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-pointer leading-[14px] overflow-hidden'}
+      style={{ left: pos.x, top: pos.y, zIndex: active ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue || active ? 260 : 150, x: '-50%', y: '-50%',
+        boxShadow: selected && !editing ? '0 0 0 3px rgba(74,98,196,0.25), 0 6px 16px rgba(31,26,20,0.08)' : undefined }}
+      title={editing ? undefined : selected ? 'Click again to rewrite' : because}
       onPointerDown={stop}
-      onClick={(e) => { stop(e); if (!editing) setEditing(true) }}
+      onClick={(e) => { stop(e); if (editing) return; if (selected) setEditing(true); else setSelected(true) }}
     >
-      {!editing && blue && <Avatar userId={authorId} size={14} />}
+      {!editing && (blue || active) && <Avatar userId={authorId} size={14} />}
       {editing ? (
-        <>
+        <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.08 }} className="flex flex-col gap-2.5">
           <span className="flex items-center gap-2 text-[12px] font-medium text-white/80"><Avatar userId={authorId} size={18} /> Because</span>
           <textarea
             ref={ref}
             value={val}
             onChange={(e) => setVal(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commit() } if (e.key === 'Escape') { e.preventDefault(); setEditing(false) } }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commit() } if (e.key === 'Escape') { e.preventDefault(); setEditing(false); setSelected(false) } }}
             onPointerDown={stop}
             rows={3}
             className="bg-transparent outline-none text-white w-full resize-none text-[17px] leading-[24px] tracking-[-0.1px]"
           />
           <span className="flex items-center justify-between text-[11px] text-white/60"><span>Enter saves · Esc keeps the old words</span><button onPointerDown={stop} onClick={(e) => { stop(e); commit() }} className="bg-white text-blue rounded-full px-3 py-1 text-[11px] font-semibold">Save</button></span>
-        </>
+        </motion.div>
       ) : (
-        <span className={blue ? 'truncate block max-w-[230px]' : 'line-clamp-3'}>{because}</span>
+        <span className={blue || active ? 'truncate block max-w-[230px]' : 'line-clamp-3'}>{because}</span>
       )}
     </motion.div>
   )
