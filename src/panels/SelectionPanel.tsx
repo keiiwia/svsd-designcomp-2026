@@ -7,12 +7,14 @@ import { Conversation } from './Conversation'
 
 /** Follows what you select: the reference, whose step it is, and the conversation around it. */
 export function SelectionPanel({ stepId }: { stepId: string }) {
+  // the panel can still be fading out after its step was removed, so every lookup is guarded
   const step = useStore((s) => s.steps[stepId])
-  const save = useStore((s) => s.saves[step.saveId])
-  const trail = useStore((s) => s.trails[step.trailId])
-  const conn = useStore((s) => Object.values(s.connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId && s.steps[c.fromStepId]?.trailId === step.trailId))
+  const save = useStore((s) => (step ? s.saves[step.saveId] : undefined))
+  const trail = useStore((s) => (step ? s.trails[step.trailId] : undefined))
+  const conn = useStore((s) => (step && trail ? Object.values(s.connections).find((c) => c.toStepId === stepId && c.authorId === trail.ownerId && s.steps[c.fromStepId]?.trailId === step.trailId) : undefined))
   const openDetail = useStore((s) => s.openDetail)
   const selectStep = useStore((s) => s.selectStep)
+  if (!step || !save || !trail) return null
   const own = trail.ownerId === 'you'
   const owner = users[trail.ownerId]
   const because = stepId === 'k2' ? KEIIWIA_BECAUSE : conn?.because

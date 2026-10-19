@@ -5,13 +5,16 @@ import { Avatar, Icon } from '../components/ui'
 import { spring, useMotion } from '../lib/motion'
 
 /** Edit the idea behind a reference, or write a brand-new one as the next step of a trail. */
+type IdeaState = NonNullable<ReturnType<typeof useStore.getState>['ui']['idea']>
+
 export function IdeaModal() {
   const idea = useStore((s) => s.ui.idea)
-  return <AnimatePresence>{idea && <Idea key={idea.mode === 'edit' ? idea.saveId : `new-${idea.fromStepId}`} />}</AnimatePresence>
+  return <AnimatePresence>{idea && <Idea key={idea.mode === 'edit' ? idea.saveId : `new-${idea.fromStepId}`} snapshot={idea} />}</AnimatePresence>
 }
 
-function Idea() {
-  const idea = useStore((s) => s.ui.idea)!
+function Idea({ snapshot }: { snapshot: IdeaState }) {
+  // while the modal fades out the store value is already null; keep the last state
+  const idea = useStore((s) => s.ui.idea) ?? snapshot
   const saves = useStore((s) => s.saves)
   const steps = useStore((s) => s.steps)
   const updateSave = useStore((s) => s.updateSave)
