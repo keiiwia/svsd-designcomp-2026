@@ -107,13 +107,10 @@ export function OverviewPanel() {
       data-panel
       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
       transition={{ duration: useMotion.getState().panelFade }}
-      className="absolute right-6 top-6 bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-5 flex flex-col gap-5 bottom-[40px] overflow-y-auto"
+      className="absolute right-6 top-[76px] bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-5 flex flex-col gap-5 bottom-[40px] overflow-y-auto"
       style={{ width: 360, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <button onClick={() => useStore.getState().toggleSidebar()} title="Hide the side panel  (\\)" className="absolute -left-3 top-5 w-6 h-6 rounded-full bg-white border border-line shadow-card flex items-center justify-center text-ink-3 hover:text-ink" onPointerDown={(e) => e.stopPropagation()}>
-        <Icon name="caret" size={10} className="rotate-90" />
-      </button>
       {/* header */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between text-[11px] text-ink-3">

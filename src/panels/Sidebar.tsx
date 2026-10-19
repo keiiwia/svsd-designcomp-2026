@@ -19,13 +19,10 @@ function Shell({ children, title, onClose, width = 360 }: { children: React.Reac
       data-panel
       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
       transition={{ duration: useMotion.getState().panelFade }}
-      className="absolute right-6 top-6 bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-6 flex flex-col gap-5 bottom-[40px] overflow-y-auto"
+      className="absolute right-6 top-[76px] bg-white border border-line rounded-[18px] shadow-[0px_6px_16px_0px_rgba(31,26,20,0.05)] p-6 flex flex-col gap-5 bottom-[40px] overflow-y-auto"
       style={{ width, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <button onClick={() => useStore.getState().toggleSidebar()} title="Hide the side panel  (\\)" className="absolute -left-3 top-5 w-6 h-6 rounded-full bg-white border border-line shadow-card flex items-center justify-center text-ink-3 hover:text-ink" onPointerDown={(e) => e.stopPropagation()}>
-        <Icon name="caret" size={10} className="rotate-90" />
-      </button>
       {(title || onClose) && (
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">{title}</div>
@@ -39,7 +36,38 @@ function Shell({ children, title, onClose, width = 360 }: { children: React.Reac
   )
 }
 
+// one toggle, always in the same corner of the screen, whether the panel is open or not
+function SidebarToggle() {
+  const hidden = useStore((s) => s.ui.sidebarHidden)
+  const toggleSidebar = useStore((s) => s.toggleSidebar)
+  return (
+    <button
+      data-panel
+      onClick={toggleSidebar}
+      title={hidden ? 'Show the side panel  (\\)' : 'Hide the side panel  (\\)'}
+      aria-pressed={!hidden}
+      className={clsx(
+        'absolute right-6 top-6 w-[42px] h-[42px] rounded-[14px] bg-white shadow-panel flex items-center justify-center transition-colors',
+        hidden ? 'text-ink-3 hover:text-ink' : 'text-ink hover:bg-paper',
+      )}
+      style={{ zIndex: 80 }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <Icon name="sidebar" size={16} />
+    </button>
+  )
+}
+
 export function Sidebar() {
+  return (
+    <>
+      <SidebarToggle />
+      <SidebarBody />
+    </>
+  )
+}
+
+function SidebarBody() {
   const mode = useStore((s) => s.ui.sidebar)
   const selected = useStore((s) => s.ui.selectedStepId)
   const ownCount = useStore((s) => Object.values(s.steps).filter((st) => st.trailId === OWN_TRAIL).length)
@@ -47,22 +75,7 @@ export function Sidebar() {
   const walking = useStore((s) => !!s.ui.walk)
   const selectedValid = useStore((s) => (selected ? !!s.steps[selected] : false))
   const hidden = useStore((s) => s.ui.sidebarHidden)
-  const toggleSidebar = useStore((s) => s.toggleSidebar)
-  if (walking) return null
-  if (hidden) {
-    return (
-      <button
-        data-panel
-        onClick={toggleSidebar}
-        title="Show the side panel  (\\)"
-        className="absolute right-6 top-6 w-9 h-9 rounded-full bg-white border border-line shadow-panel flex items-center justify-center text-ink-2 hover:bg-paper"
-        style={{ zIndex: 80 }}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <Icon name="caret" size={12} className="-rotate-90" />
-      </button>
-    )
-  }
+  if (walking || hidden) return null
   // explicit actions (a fresh link, branching from a step) keep their panel; otherwise the sidebar follows what you select
   const explicit = mode.kind === 'connection' || mode.kind === 'branchFrom'
   if (!explicit && selected && selectedValid) {
