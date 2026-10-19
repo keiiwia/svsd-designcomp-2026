@@ -90,6 +90,7 @@ export interface TrailsState {
   addIdea: (title: string, thought: string) => string
   updateConnection: (id: string, because: string) => void
   moveConnectionLabel: (id: string, offset: { x: number; y: number }) => void
+  moveConnectionEnd: (id: string, end: 'from' | 'to', stepId: string, anchor: Anchor) => void
   updateThought: (id: string, text: string) => void
   addLink: (url: string) => void
   placeNextSave: () => boolean
@@ -405,6 +406,18 @@ export const useStore = create<TrailsState>()(
             placed: s.placed.filter((id) => id !== step.saveId),
             ui: { ...s.ui, selectedStepId: s.ui.selectedStepId === stepId ? null : s.ui.selectedStepId },
           }
+        }),
+      // drag an end of a connection to another spot, or onto another reference
+      moveConnectionEnd: (id, end, stepId, anchor) =>
+        set((s) => {
+          const c = s.connections[id]
+          if (!c || c.authorId !== YOU) return {}
+          const other = end === 'from' ? c.toStepId : c.fromStepId
+          if (stepId === other) return {}
+          const next: Connection = end === 'from'
+            ? { ...c, fromStepId: stepId, fromAnchor: anchor }
+            : { ...c, toStepId: stepId, anchor }
+          return { connections: { ...s.connections, [id]: next } }
         }),
       moveConnectionLabel: (id, labelOffset) =>
         set((s) => (s.connections[id] ? { connections: { ...s.connections, [id]: { ...s.connections[id], labelOffset } } } : {})),

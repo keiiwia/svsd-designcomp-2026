@@ -5,7 +5,7 @@ import { Avatar } from '../components/ui'
 import { users, DISPLAY_NAME } from '../data/seed'
 import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geometry'
 import type { Connection, Thought } from '../types'
-import { useDrag } from './drag'
+import { useDrag, stepAtClient } from './drag'
 import { spring, useMotion } from '../lib/motion'
 
 /** A because chip: one click opens it for rewriting (it turns blue as you hover). Enter saves, Escape cancels. */
@@ -131,6 +131,31 @@ export function EdgesLayer({
   const thoughts = useStore((s) => s.thoughts)
   const mo = useMotion()
   const [hot, setHot] = useState<string | null>(null)
+  const moveEnd = useStore((s) => s.moveConnectionEnd)
+  // an end of a connection being dragged to a new spot
+  const [endDrag, setEndDrag] = useState<{ id: string; end: 'from' | 'to'; client: Pt } | null>(null)
+  const startEndDrag = (e: React.PointerEvent, id: string, end: 'from' | 'to') => {
+    e.stopPropagation(); e.preventDefault()
+    const move = (ev: PointerEvent) => setEndDrag({ id, end, client: { x: ev.clientX, y: ev.clientY } })
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      setEndDrag(null)
+      const hit = stepAtClient(ev.clientX, ev.clientY)
+      if (hit) moveEnd(id, end, hit.id, { x: (ev.clientX - hit.rect.left) / hit.rect.width, y: (ev.clientY - hit.rect.top) / hit.rect.height })
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    setEndDrag({ id, end, client: { x: e.clientX, y: e.clientY } })
+  }
+  const handle = ({ id, end, x, y, r, stroke, mine }: { id: string; end: 'from' | 'to'; x: number; y: number; r: number; stroke: string; mine: boolean }) => (
+    <circle key={`${id}-${end}`} cx={x} cy={y} r={r} fill="rgba(255,255,255,0.85)" stroke={stroke} strokeWidth={1.4}
+      style={{ pointerEvents: mine ? 'auto' : 'none', cursor: 'grab' }}
+      onPointerDown={mine ? (e) => startEndDrag(e, id, end) : undefined}
+      onPointerEnter={() => setHot(id)} onPointerLeave={() => setHot(null)}>
+      {mine && <title>Drag to move this end</title>}
+    </circle>
+  )
   const rectOf = (id: string) => {
     const st = steps[id]
     if (st) return stepRect(st, trails[st.trailId], saves[st.saveId], sizes)
@@ -171,41 +196,43 @@ export function EdgesLayer({
     const cross = trailOf(c.fromStepId) !== trailOf(c.toStepId)
     const end = anchorPoint(b, c.anchor)
     const bTarget = c.anchor ? end : edgePoint(b, { x: a.x + a.w / 2, y: a.y + a.h / 2 })
-    const start = edgePoint(a, bTarget)
+    const start = c.fromAnchor ? anchorPoint(a, c.fromAnchor) : edgePoint(a, bTarget)
+    const mine = c.authorId === 'you'
+    // while an end is being dragged, that end follows the cursor
+    const dragging = endDrag?.id === c.id ? endDrag : null
+    const liveStart = dragging?.end === 'from' ? toCanvas(dragging.client) : start
+    const liveEnd = dragging?.end === 'to' ? toCanvas(dragging.client) : bTarget
 
     if (!cross) {
       const mid = { x: (start.x + bTarget.x) / 2, y: (start.y + bTarget.y) / 2 }
       lines.push(
-        <motion.line key={c.id} x1={start.x} y1={start.y} x2={bTarget.x} y2={bTarget.y} stroke={hot === c.id ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id ? 1.5 : 1}
+        <motion.line key={c.id} x1={liveStart.x} y1={liveStart.y} x2={liveEnd.x} y2={liveEnd.y} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 1.5 : 1}
+          strokeDasharray={dragging ? '4 4' : undefined}
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.edgeDraw, ease: 'easeInOut' }} />,
       )
       marks.push(
         <g key={c.id}>
-          <circle cx={start.x} cy={start.y} r={3} fill="white" stroke="#aba59c" />
-          {c.anchor ? (
-            <circle cx={bTarget.x} cy={bTarget.y} r={6} fill="rgba(255,255,255,0.7)" stroke="#aba59c" strokeWidth={1.2} />
-          ) : (
-            <circle cx={bTarget.x} cy={bTarget.y} r={3} fill="white" stroke="#aba59c" />
-          )}
+          {handle({ id: c.id, end: 'from', x: liveStart.x, y: liveStart.y, r: hot === c.id ? 6 : 4, stroke: hot === c.id || dragging ? '#4a62c4' : '#aba59c', mine })}
+          {handle({ id: c.id, end: 'to', x: liveEnd.x, y: liveEnd.y, r: c.anchor || hot === c.id ? 6.5 : 4, stroke: hot === c.id || dragging ? '#4a62c4' : '#aba59c', mine })}
         </g>,
       )
       if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} toStepId={c.toStepId} offset={c.labelOffset} onHot={setHot} />)
       if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#c9c5be" strokeWidth={1} strokeDasharray="2 3" />)
     } else {
       // blue curve from the bottom of yours to the spot on theirs
-      const s = { x: a.x + a.w / 2, y: a.y + a.h }
-      const e = bTarget
+      const s = dragging?.end === 'from' ? liveStart : c.fromAnchor ? anchorPoint(a, c.fromAnchor) : { x: a.x + a.w / 2, y: a.y + a.h }
+      const e = liveEnd
       const c1 = { x: s.x, y: s.y + Math.abs(e.y - s.y) * 0.5 }
       const c2 = { x: e.x, y: e.y - Math.abs(e.y - s.y) * 0.5 }
       const mid = cubic(s, c1, c2, e, 0.5)
       lines.push(
-        <motion.path key={c.id} d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke={hot === c.id ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id ? 1.5 : 1} fill="none"
+        <motion.path key={c.id} d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 1.5 : 1} fill="none" strokeDasharray={dragging ? '4 4' : undefined}
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.crossDraw, ease: 'easeInOut' }} />,
       )
       marks.push(
         <g key={c.id}>
-          <circle cx={s.x} cy={s.y} r={3} fill="white" stroke={hot === c.id ? '#4a62c4' : '#aba59c'} />
-          <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke={hot === c.id ? '#4a62c4' : '#aba59c'} strokeWidth={1.4} />
+          {handle({ id: c.id, end: 'from', x: s.x, y: s.y, r: hot === c.id ? 6 : 4, stroke: hot === c.id || dragging ? '#4a62c4' : '#aba59c', mine })}
+          {handle({ id: c.id, end: 'to', x: e.x, y: e.y, r: 7, stroke: hot === c.id || dragging ? '#4a62c4' : '#aba59c', mine })}
         </g>,
       )
       if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} toStepId={c.toStepId} offset={c.labelOffset} onHot={setHot} />)
@@ -259,7 +286,7 @@ export function EdgesLayer({
       <svg className="absolute left-0 top-0 overflow-visible pointer-events-none" width={1} height={1} style={{ zIndex: 3 }}>
         {lines}
       </svg>
-      <svg className="absolute left-0 top-0 overflow-visible pointer-events-none" width={1} height={1} style={{ zIndex: 12 }}>
+      <svg className="absolute left-0 top-0 overflow-visible" width={1} height={1} style={{ zIndex: 12, pointerEvents: 'none' }}>
         {marks}
       </svg>
       {chips}

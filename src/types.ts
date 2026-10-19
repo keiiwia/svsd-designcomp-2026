@@ -52,6 +52,8 @@ export interface Connection {
   fromStepId: string
   toStepId: string
   anchor?: Anchor
+  /** where the line leaves the source card, if you moved it */
+  fromAnchor?: Anchor
   t?: number
   because: string
   attachments: string[]
