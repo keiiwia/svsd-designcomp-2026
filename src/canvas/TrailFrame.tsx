@@ -10,6 +10,7 @@ import { users } from '../data/seed'
 export function TrailFrame({ trail, rect, state, stepCount }: {
   trail: Trail; rect: Rect; state: 'own' | 'ghost' | 'collapsed' | 'expanded'; stepCount: number
 }) {
+  void stepCount
   const editing = useStore((s) => s.ui.editingTitle && s.ui.selectedStepId === null && trail.ownerId === 'you')
   const setEditingTitle = useStore((s) => s.setEditingTitle)
   const renameTrail = useStore((s) => s.renameTrail)
@@ -90,22 +91,21 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
         </div>
       )}
 
-      {/* collapsed / ghost: step count + add button, right of the card */}
+      {/* collapsed / ghost: Add sits in the heading, the hint shows straight away while a link is still missing */}
       {dashed && (
-        <div className="absolute flex flex-col gap-2 items-start whitespace-nowrap" style={{ left: 290, top: 64, zIndex: 2, width: 'max-content' }}>
-          <p className="font-mono text-[11px] text-ink-3">{stepCount} steps in {owner.name === 'keiiwia' ? 'her' : 'their'} trail</p>
+        <div className="absolute right-4 top-3 flex flex-col items-end gap-1" style={{ zIndex: 2 }}>
           <button
             disabled={state === 'ghost'}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); setBranchState(trail.id, 'expanded'); setSidebar({ kind: 'branch', trailId: trail.id }) }}
-            title={state === 'ghost' ? 'Link one of yours to her step first' : undefined}
-            className={clsx('flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors',
+            className={clsx('flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors whitespace-nowrap',
               state === 'ghost'
-                ? 'bg-paper text-ink-4 border border-line hover:bg-frame hover:text-ink-2 hover:border-ink-4/60 cursor-not-allowed'
+                ? 'bg-paper text-ink-4 border border-line cursor-not-allowed'
                 : 'bg-ink text-white hover:bg-black hover:shadow-card')}
           >
             <Icon name="plus" size={11} /> Add {owner.name}’s branch
           </button>
+          {state === 'ghost' && <span className="text-[10px] text-ink-3 whitespace-nowrap">Link one of yours to {owner.name === 'keiiwia' ? 'her' : 'their'} step first</span>}
         </div>
       )}
 

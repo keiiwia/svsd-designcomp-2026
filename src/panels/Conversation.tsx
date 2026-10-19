@@ -106,7 +106,7 @@ export function Conversation({ stepId, compact }: { stepId: string; compact?: bo
         <span className="text-ink-3">· {thoughts.length}</span>
       </div>
 
-      {roots.length === 0 && <p className="text-[12px] text-ink-3">No thoughts yet. Yours would be the first.</p>}
+      {roots.length === 0 && <p className="text-[12px] text-ink-3">No thoughts yet.</p>}
 
       <div className="flex flex-col gap-3">
         {roots.map((t) => (

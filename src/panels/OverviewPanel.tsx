@@ -82,10 +82,11 @@ export function OverviewPanel() {
   const updateTrailNote = useStore((s) => s.updateTrailNote)
   const toggleNoteItem = useStore((s) => s.toggleNoteItem)
   const addNoteItem = useStore((s) => s.addNoteItem)
-  const openDetail = useStore((s) => s.openDetail)
   const setDrag = useDrag((s) => s.set)
   const [newItem, setNewItem] = useState('')
-  const [notesOpen, setNotesOpen] = useState(true)
+  const hasNotes = !!(note && (note.title.trim() || note.body.trim() || note.items.length))
+  // open when there is something to read, folded away when there isn't
+  const [notesOpen, setNotesOpen] = useState(hasNotes)
 
   const own = useMemo(() => Object.values(steps).filter((s) => s.trailId === OWN_TRAIL).sort((a, b) => a.index - b.index), [steps])
   const unplaced = Object.values(saves).filter((s) => s.ownerId === 'you' && !placed.includes(s.id))
@@ -110,6 +111,9 @@ export function OverviewPanel() {
       style={{ width: 360, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      <button onClick={() => useStore.getState().toggleSidebar()} title="Hide the side panel  (\\)" className="absolute -left-3 top-5 w-6 h-6 rounded-full bg-white border border-line shadow-card flex items-center justify-center text-ink-3 hover:text-ink" onPointerDown={(e) => e.stopPropagation()}>
+        <Icon name="caret" size={10} className="rotate-90" />
+      </button>
       {/* header */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between text-[11px] text-ink-3">
@@ -137,37 +141,34 @@ export function OverviewPanel() {
         </div>
       </div>
 
-      {/* notes */}
+      {/* notes: nothing here until you write something */}
       <div className="flex flex-col gap-2.5 border-t border-line pt-4">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-ink-2 font-medium">Notes <span className="text-ink-3 font-normal">· Edited today</span></span>
-          <button onClick={() => setNotesOpen((o) => !o)} className="text-ink-3 hover:text-ink flex items-center gap-1"><Icon name="source" size={10} /> {notesOpen ? 'Close' : 'Open'}</button>
-        </div>
-        {notesOpen && trail.title === 'Untitled trail' && (
-          <p className="text-[12px] text-ink-3 leading-[17px]">Name the trail and the notes open up. Write what these have in common once you see it.</p>
-        )}
-        {notesOpen && trail.title !== 'Untitled trail' && (
+        <button onClick={() => setNotesOpen((o) => !o)} className="flex items-center justify-between text-[11px] w-full text-left">
+          <span className="text-ink-2 font-medium flex items-center gap-1.5">
+            Notes
+            {hasNotes && <span className="w-1.5 h-1.5 rounded-full bg-you" title="You have notes here" />}
+            {!hasNotes && <span className="text-ink-3 font-normal">· none yet</span>}
+          </span>
+          <Icon name="caret" size={11} className={clsx('text-ink-3 transition-transform', notesOpen ? 'rotate-180' : '')} />
+        </button>
+        {notesOpen && (
           <>
             <input value={note?.title ?? ''} onChange={(e) => updateTrailNote(OWN_TRAIL, { title: e.target.value })} placeholder="A title for what you’re noticing"
               className="text-[14px] font-semibold text-ink bg-transparent outline-none" />
             <textarea value={note?.body ?? ''} onChange={(e) => updateTrailNote(OWN_TRAIL, { body: e.target.value })} rows={3} placeholder="What do these have in common so far?"
               className="text-[12.5px] leading-[18px] text-ink-2 bg-transparent outline-none w-full" />
-            {own.length > 0 && (
-              <button onClick={() => openDetail(own[0].id)} className="flex items-center gap-2 text-[11px] text-ink-2 bg-paper rounded-[8px] px-2 py-1.5 w-fit hover:bg-frame">
-                <span className="inline-flex">{own.slice(0, 3).map((st, i) => saves[st.saveId].thumb ? <img key={st.id} src={saves[st.saveId].thumb} alt="" className={clsx('w-5 h-5 rounded object-cover border border-white', i > 0 && '-ml-1.5')} /> : null)}</span>
-                Rabbit hole · {own.length} step{own.length === 1 ? '' : 's'}
-              </button>
+            {(note?.items ?? []).length > 0 && (
+              <ul className="flex flex-col gap-1.5">
+                {(note?.items ?? []).map((it) => (
+                  <li key={it.id} className="flex items-start gap-2 text-[12px] leading-[16px]">
+                    <button onClick={() => toggleNoteItem(OWN_TRAIL, it.id)} className={clsx('mt-[2px] w-3.5 h-3.5 rounded-[4px] border shrink-0 flex items-center justify-center', it.done ? 'bg-ink border-ink text-white' : 'border-ink-4')}>
+                      {it.done && <span className="text-[9px] leading-none">✓</span>}
+                    </button>
+                    <span className={clsx(it.done ? 'line-through text-ink-4' : 'text-ink')}>{it.text}</span>
+                  </li>
+                ))}
+              </ul>
             )}
-            <ul className="flex flex-col gap-1.5">
-              {(note?.items ?? []).map((it) => (
-                <li key={it.id} className="flex items-start gap-2 text-[12px] leading-[16px]">
-                  <button onClick={() => toggleNoteItem(OWN_TRAIL, it.id)} className={clsx('mt-[2px] w-3.5 h-3.5 rounded-[4px] border shrink-0 flex items-center justify-center', it.done ? 'bg-ink border-ink text-white' : 'border-ink-4')}>
-                    {it.done && <span className="text-[9px] leading-none">✓</span>}
-                  </button>
-                  <span className={clsx(it.done ? 'line-through text-ink-4' : 'text-ink')}>{it.text}</span>
-                </li>
-              ))}
-            </ul>
             <form onSubmit={(e) => { e.preventDefault(); if (newItem.trim()) { addNoteItem(OWN_TRAIL, newItem.trim()); setNewItem('') } }}>
               <input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="+ add a question to chase" className="text-[12px] text-ink-2 bg-transparent outline-none w-full" />
             </form>

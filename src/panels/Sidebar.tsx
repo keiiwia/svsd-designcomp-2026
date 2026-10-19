@@ -23,6 +23,9 @@ function Shell({ children, title, onClose, width = 360 }: { children: React.Reac
       style={{ width, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      <button onClick={() => useStore.getState().toggleSidebar()} title="Hide the side panel  (\\)" className="absolute -left-3 top-5 w-6 h-6 rounded-full bg-white border border-line shadow-card flex items-center justify-center text-ink-3 hover:text-ink" onPointerDown={(e) => e.stopPropagation()}>
+        <Icon name="caret" size={10} className="rotate-90" />
+      </button>
       {(title || onClose) && (
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">{title}</div>
@@ -43,7 +46,23 @@ export function Sidebar() {
   const unplaced = useStore((s) => Object.values(s.saves).filter((sv) => sv.ownerId === 'you' && !s.placed.includes(sv.id)).length)
   const walking = useStore((s) => !!s.ui.walk)
   const selectedValid = useStore((s) => (selected ? !!s.steps[selected] : false))
+  const hidden = useStore((s) => s.ui.sidebarHidden)
+  const toggleSidebar = useStore((s) => s.toggleSidebar)
   if (walking) return null
+  if (hidden) {
+    return (
+      <button
+        data-panel
+        onClick={toggleSidebar}
+        title="Show the side panel  (\\)"
+        className="absolute right-6 top-6 w-9 h-9 rounded-full bg-white border border-line shadow-panel flex items-center justify-center text-ink-2 hover:bg-paper"
+        style={{ zIndex: 80 }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <Icon name="caret" size={12} className="-rotate-90" />
+      </button>
+    )
+  }
   // explicit actions (a fresh link, branching from a step) keep their panel; otherwise the sidebar follows what you select
   const explicit = mode.kind === 'connection' || mode.kind === 'branchFrom'
   if (!explicit && selected && selectedValid) {

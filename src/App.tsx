@@ -50,6 +50,7 @@ export default function App() {
       if (e.key === 'R' && e.shiftKey) { st.reset(); loadScene(1); return }
       if (e.key === 'D' && e.shiftKey && import.meta.env.DEV) { setTuner((t) => !t); return }
       if (e.key === ' ' && !e.repeat) { if (st.ui.tool !== 'hand') { spaceFrom = st.ui.tool; st.setTool('hand') } e.preventDefault(); return }
+      if (e.key === '\\') { st.toggleSidebar(); return }
       if (k === 'v') st.setTool('select')
       if (k === 'h') st.setTool('hand')
       if (k === 't') st.setTool('thought')

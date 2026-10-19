@@ -8,6 +8,7 @@ const rows: [string, string][] = [
   ['A', 'Add menu'],
   ['P', 'Pin the selected reference'],
   ['F', 'Zoom to fit / back'],
+  ['\\', 'Hide or show the side panel'],
   ['⌘ Z', 'Undo'],
   ['⌘ ⇧ Z', 'Redo'],
   ['⌫', 'Remove the selected reference'],

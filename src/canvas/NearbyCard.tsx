@@ -44,10 +44,12 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
           className={clsx('w-[240px] bg-white rounded-[14px] p-3 flex flex-col gap-2.5 shadow-card-lift border border-line -translate-x-8 -translate-y-3')}
           style={{ transformOrigin: 'top left' }}
         >
-          <p className="text-[12px] leading-[16px] text-ink">“{save.thought}”</p>
-          {save.thumb && (
-            <div className="w-full h-[110px] rounded-[8px] overflow-hidden"><img src={save.thumb} alt="" className="w-full h-full object-cover" /></div>
-          )}
+          <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-left flex flex-col gap-2.5" title="Open to look closer">
+            <p className="text-[12px] leading-[16px] text-ink">“{save.thought}”</p>
+            {save.thumb && (
+              <div className="w-full h-[110px] rounded-[8px] overflow-hidden"><img src={save.thumb} alt="" className="w-full h-full object-cover hover:scale-[1.03] transition-transform" /></div>
+            )}
+          </button>
           <div className="flex flex-col gap-1 text-[10px] text-ink-3">
             <span className="flex items-center gap-1.5"><KindDot userId={trail.ownerId} /> {save.mediumLabel}</span>
             <span className="flex items-center gap-1.5"><Avatar userId={trail.ownerId} size={12} ring={false} /> {u.name}’s trail</span>

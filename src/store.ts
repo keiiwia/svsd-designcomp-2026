@@ -6,7 +6,7 @@ import type {
 import { useCanvasApi } from './canvas/CanvasContext'
 import {
   allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, trails as seedTrails,
-  KEIIWIA_REPLY, KEIIWIA_TRAIL, OWN_TRAIL, YOU, ownTrailNote,
+  KEIIWIA_REPLY, KEIIWIA_TRAIL, OWN_TRAIL, YOU,
 } from './data/seed'
 
 export interface Camera { x: number; y: number; scale: number }
@@ -27,6 +27,7 @@ export interface UIState {
   walk: WalkState | null
   overview: boolean
   idea: { mode: 'edit'; saveId: string } | { mode: 'create'; fromStepId: string } | null
+  sidebarHidden: boolean
 }
 
 export interface TrailsState {
@@ -97,6 +98,7 @@ export interface TrailsState {
   walkPrev: () => void
   endWalk: () => void
   setOverview: (v: boolean) => void
+  toggleSidebar: () => void
   reset: () => void
 }
 
@@ -112,6 +114,7 @@ const initialUI: UIState = {
   walk: null,
   overview: false,
   idea: null,
+  sidebarHidden: false,
 }
 
 export function freshState() {
@@ -132,7 +135,7 @@ export function freshState() {
     unlocked: {} as Record<string, boolean>,
     nearbyVisible: false,
     pinned: {} as Record<string, boolean>,
-    trailNotes: { [OWN_TRAIL]: JSON.parse(JSON.stringify(ownTrailNote)) } as Record<string, TrailNote>,
+    trailNotes: {} as Record<string, TrailNote>,
     ui: { ...initialUI },
     draft: null as BecauseDraft | null,
     camera: { x: 0, y: 0, scale: 1 },
@@ -456,6 +459,7 @@ export const useStore = create<TrailsState>()(
         }),
       endWalk: () => set((s) => ({ ui: { ...s.ui, walk: null, tool: 'select' } })),
       setOverview: (overview) => set((s) => ({ ui: { ...s.ui, overview } })),
+      toggleSidebar: () => set((s) => ({ ui: { ...s.ui, sidebarHidden: !s.ui.sidebarHidden } })),
       reset: () => set({ ...freshState() }),
     }),
     {

@@ -28,6 +28,9 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
       style={{ width: 360, zIndex: 80 }}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      <button onClick={() => useStore.getState().toggleSidebar()} title="Hide the side panel  (\\)" className="absolute -left-3 top-5 w-6 h-6 rounded-full bg-white border border-line shadow-card flex items-center justify-center text-ink-3 hover:text-ink" onPointerDown={(e) => e.stopPropagation()}>
+        <Icon name="caret" size={10} className="rotate-90" />
+      </button>
       <div className="flex items-start justify-between gap-3">
         {save.thumb ? (
           <img src={save.thumb} alt="" className="w-full h-[150px] rounded-[12px] object-cover" />
