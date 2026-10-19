@@ -19,7 +19,7 @@ function MiniButton({ icon, label, onClick, disabled, active, size = 22 }: { ico
       >
         <Icon name={icon} size={size} />
       </button>
-      <Tip label={label} show={hover} />
+      <Tip label={label} show={hover && !active} />
     </div>
   )
 }
@@ -76,8 +76,9 @@ export function SelectionToolbar({ step, trail }: { step: Step; trail: Trail }) 
         {branch && (
           <motion.div
             ref={menuRef}
-            initial={{ opacity: 0, y: -6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.14 }}
-            className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+8px)] w-[260px] bg-white border border-line rounded-[16px] p-1.5 flex flex-col gap-0.5"
+            initial={{ opacity: 0, y: 6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: 0.14 }}
+            // above the pill, so the selected card stays in view
+            className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+8px)] w-[260px] bg-white border border-line rounded-[16px] p-1.5 flex flex-col gap-0.5"
             style={{ boxShadow: '0 10px 14px rgba(38,33,26,0.08), 0 1px 1px rgba(38,33,26,0.05)', zIndex: 46 }}
           >
             <p className="px-2.5 pt-1.5 pb-1 text-[11px] text-ink-3">
