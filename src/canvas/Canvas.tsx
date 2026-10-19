@@ -8,6 +8,7 @@ import { StepCard, CardBody } from './StepCard'
 import { NoteCard } from './NoteCard'
 import { TrailFrame } from './TrailFrame'
 import { NearbyCard } from './NearbyCard'
+import { useSpots } from './spots'
 import { EdgesLayer } from './EdgesLayer'
 import { BecausePopover } from './BecausePopover'
 import { anchorPoint, estimateSize, stepRect, type Pt } from '../lib/geometry'
@@ -273,6 +274,8 @@ export function Canvas() {
       return { id: st.id, pos, w, h, from: anchor }
     })
   }, [suggestFor, steps, trails, saves, sizes, connections, branchState])
+
+  useEffect(() => { useSpots.getState().set(Object.fromEntries(suggested.map((n) => [n.id, n.pos]))) }, [suggested])
 
   const popover = useMemo(() => {
     if (!draft || !ref.current) return null

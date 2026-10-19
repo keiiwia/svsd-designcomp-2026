@@ -4,6 +4,7 @@ import type {
   Anchor, BecauseDraft, BranchState, Connection, Save, SidebarMode, Size, Stance, Step, Thought, Tool, Trail, TrailNote,
 } from './types'
 import { useCanvasApi } from './canvas/CanvasContext'
+import { useSpots } from './canvas/spots'
 import { frameRect, type Rect } from './lib/geometry'
 import {
   allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, nearbyLayout, trails as seedTrails,
@@ -286,7 +287,7 @@ export const useStore = create<TrailsState>()(
         const bs = s.branchState[step.trailId]
         const fresh = bs === 'hidden' || !bs
         // their trail lands where you met it: the card you clicked, or the nearby card's spot
-        const spot = fresh ? at ?? nearbySpot(s, stepId) : null
+        const spot = fresh ? at ?? useSpots.getState().spots[stepId] ?? nearbySpot(s, stepId) : null
         let trails = s.trails
         if (spot) {
           const origin = { x: spot.x - step.pos.x, y: spot.y - step.pos.y }
@@ -307,7 +308,8 @@ export const useStore = create<TrailsState>()(
         set({
           trails,
           branchState: { ...s.branchState, [step.trailId]: fresh ? 'ghost' : bs },
-          ui: { ...s.ui, detailStepId: null, connectHintStepId: stepId, sidebar: { kind: 'saves' } },
+          // picking one suggestion dismisses the others
+          ui: { ...s.ui, detailStepId: null, connectHintStepId: stepId, sidebar: { kind: 'saves' }, suggestForStepId: null },
         })
         // only when it landed somewhere we could not anchor (from the detail view) do we move the camera
         if (!spot) requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))

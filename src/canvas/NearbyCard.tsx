@@ -1,19 +1,29 @@
 import { useState } from 'react'
-import clsx from 'clsx'
 import { motion } from 'motion/react'
 import { useStore } from '../store'
 import { Avatar, Icon, KindDot } from '../components/ui'
 import { users } from '../data/seed'
 import type { Save, Step, Trail } from '../types'
 import type { Pt } from '../lib/geometry'
-import { spring, useMotion } from '../lib/motion'
+import { useMotion } from '../lib/motion'
 
-export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepId }: { step: Step; save: Save; trail: Trail; pos: Pt; order?: number; quick?: boolean; fromStepId?: string | null }) {
+const COMPACT_W = 170, OPEN_W = 240
+
+/**
+ * A reference from someone else's trail, sitting near yours. It grows from its left edge on hover:
+ * the top part never moves, the image and the Link button unfold beneath it.
+ */
+export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepId }: {
+  step: Step; save: Save; trail: Trail; pos: Pt; order?: number; quick?: boolean; fromStepId?: string | null
+}) {
   const [hover, setHover] = useState(false)
   const mo = useMotion()
   const openDetail = useStore((s) => s.openDetail)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
+  const nThoughts = useStore((s) => Object.values(s.thoughts).filter((t) => t.stepId === step.id).length)
   const fromOwn = useStore((s) => (fromStepId ? s.trails[s.steps[fromStepId]?.trailId ?? '']?.ownerId === 'you' : false))
+  const u = users[trail.ownerId]
+
   const connect = () => {
     makeConnectionFrom(step.id, pos)
     if (fromStepId && fromOwn) {
@@ -26,8 +36,9 @@ export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepI
       }))
     } else useStore.getState().suggestFrom(null)
   }
-  const nThoughts = useStore((s) => Object.values(s.thoughts).filter((t) => t.stepId === step.id).length)
-  const u = users[trail.ownerId]
+
+  const grow = { type: 'spring' as const, stiffness: 420, damping: 36, mass: 0.8 }
+  const unfold = { duration: 0.22, ease: [0.25, 0.8, 0.25, 1] as const }
 
   return (
     <motion.div
@@ -40,43 +51,35 @@ export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepI
       onPointerLeave={() => setHover(false)}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      {!hover ? (
-        <button
-          onClick={(e) => { e.stopPropagation(); openDetail(step.id) }}
-          className="w-[170px] text-left bg-white/95 rounded-[12px] px-3 py-2.5 flex flex-col gap-1.5 shadow-card border-[1.4px]"
-          style={{ borderColor: u.noteBg }}
-        >
+      <motion.div
+        initial={false}
+        animate={{ width: hover ? OPEN_W : COMPACT_W, borderColor: hover ? '#e6e2db' : u.noteBg }}
+        transition={{ width: grow, borderColor: unfold }}
+        className="bg-white rounded-[12px] px-3 py-2.5 flex flex-col gap-1.5 border-[1.4px] text-left overflow-hidden"
+        style={{ transformOrigin: 'left top', boxShadow: hover ? '0 10px 24px rgba(31,26,20,0.1)' : '0 2px 6px rgba(31,26,20,0.06)', transition: 'box-shadow 0.22s' }}
+      >
+        <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-left flex flex-col gap-1.5 w-full" title="Open to look closer">
           <span className="flex items-center gap-1.5 text-[10px] font-medium text-ink-2"><KindDot userId={trail.ownerId} /> {save.mediumLabel}</span>
-          <span className="text-[12px] leading-[16px] text-ink line-clamp-2">“{save.thought}”</span>
+          <span className="text-[12px] leading-[16px] text-ink">“{save.thought}”</span>
           <span className="flex items-center gap-1.5 text-[10px] text-ink-3"><Avatar userId={trail.ownerId} size={13} ring={false} /> {u.name}’s trail</span>
         </button>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={spring(mo.cardDrop)}
-          className={clsx('w-[240px] bg-white rounded-[14px] p-3 flex flex-col gap-2.5 shadow-card-lift border border-line -translate-x-8 -translate-y-3')}
-          style={{ transformOrigin: 'top left' }}
-        >
-          <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-left flex flex-col gap-2.5" title="Open to look closer">
-            <p className="text-[12px] leading-[16px] text-ink">“{save.thought}”</p>
+
+        {/* unfolds beneath on hover; the part above never moves */}
+        <motion.div initial={false} animate={{ height: hover ? 'auto' : 0, opacity: hover ? 1 : 0 }} transition={unfold} style={{ overflow: 'hidden' }}>
+          <div className="flex flex-col gap-2.5 pt-1.5">
             {save.thumb && (
-              <div className="w-full h-[110px] rounded-[8px] overflow-hidden"><img src={save.thumb} alt="" className="w-full h-full object-cover hover:scale-[1.03] transition-transform" /></div>
+              <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="w-full h-[110px] rounded-[8px] overflow-hidden">
+                <img src={save.thumb} alt="" className="w-full h-full object-cover hover:scale-[1.03] transition-transform" />
+              </button>
             )}
-          </button>
-          <div className="flex flex-col gap-1 text-[10px] text-ink-3">
-            <span className="flex items-center gap-1.5"><KindDot userId={trail.ownerId} /> {save.mediumLabel}</span>
-            <span className="flex items-center gap-1.5"><Avatar userId={trail.ownerId} size={12} ring={false} /> {u.name}’s trail</span>
-            {nThoughts > 0 && <span className="flex items-center gap-1.5"><Icon name="lock" size={10} /> {nThoughts} thoughts here</span>}
-          </div>
-          <div className="flex gap-2">
+            {nThoughts > 0 && <span className="flex items-center gap-1.5 text-[10px] text-ink-3"><Icon name="lock" size={10} /> {nThoughts} thoughts here</span>}
             <button onClick={(e) => { e.stopPropagation(); connect() }}
-              className="flex items-center gap-1.5 bg-ink text-white rounded-full px-3 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap">
+              className="w-fit flex items-center gap-1.5 bg-ink text-white rounded-full px-3 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap">
               <Icon name="connect" size={11} /> Link
             </button>
-            <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-[11px] text-ink-2 px-2 hover:text-ink">Open</button>
           </div>
         </motion.div>
-      )}
+      </motion.div>
     </motion.div>
   )
 }
