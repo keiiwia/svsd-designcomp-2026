@@ -347,9 +347,11 @@ export const useStore = create<TrailsState>()(
         const fromTrail = s.trails[from.trailId]
         // new branch trail of yours, placed under the step
         const trailId = `t-branch-${s.seq}`
+        // land the new step clear of the source card, whatever its height
+        const fromHeight = useSizes.getState().sizes[stepId]?.h ?? 230
         const newTrail: Trail = {
           id: trailId, title: 'Untitled trail', ownerId: YOU,
-          origin: { x: fromTrail.origin.x + from.pos.x - 24, y: fromTrail.origin.y + from.pos.y + 150 },
+          origin: { x: fromTrail.origin.x + from.pos.x - 24, y: fromTrail.origin.y + from.pos.y + fromHeight + 70 },
           branchedFrom: { trailTitle: fromTrail.title, ownerId: fromTrail.ownerId, stepIndex: from.index },
         }
         const stepId2 = `st${s.seq}`
