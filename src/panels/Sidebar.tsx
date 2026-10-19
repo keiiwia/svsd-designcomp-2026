@@ -59,10 +59,24 @@ function SidebarToggle() {
 }
 
 export function Sidebar() {
+  const hidden = useStore((s) => s.ui.sidebarHidden)
   return (
     <>
       <SidebarToggle />
-      <SidebarBody />
+      {/* the panel is gated here, not inside, so hiding it plays the same fade as showing it */}
+      <AnimatePresence>
+        {!hidden && (
+          <motion.div
+            key="panel"
+            initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}
+            transition={{ duration: useMotion.getState().panelFade }}
+            className="absolute inset-0 pointer-events-none [&>*]:pointer-events-auto"
+            style={{ zIndex: 80 }}
+          >
+            <SidebarBody />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
@@ -74,8 +88,7 @@ function SidebarBody() {
   const unplaced = useStore((s) => Object.values(s.saves).filter((sv) => sv.ownerId === 'you' && !s.placed.includes(sv.id)).length)
   const walking = useStore((s) => !!s.ui.walk)
   const selectedValid = useStore((s) => (selected ? !!s.steps[selected] : false))
-  const hidden = useStore((s) => s.ui.sidebarHidden)
-  if (walking || hidden) return null
+  if (walking) return null
   // explicit actions (a fresh link, branching from a step) keep their panel; otherwise the sidebar follows what you select
   const explicit = mode.kind === 'connection' || mode.kind === 'branchFrom'
   if (!explicit && selected && selectedValid) {
