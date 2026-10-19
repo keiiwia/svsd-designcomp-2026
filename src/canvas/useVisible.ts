@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useStore, useSizes } from '../store'
-import { frameRect, type Rect } from '../lib/geometry'
+import { frameRect, headerMinWidth, type Rect } from '../lib/geometry'
+import { users } from '../data/seed'
 import { OWN_TRAIL } from '../data/seed'
 import type { Step, Trail } from '../types'
 
@@ -11,6 +12,7 @@ export function useVisible() {
   const saves = useStore((s) => s.saves)
   const thoughts = useStore((s) => s.thoughts)
   const branchState = useStore((s) => s.branchState)
+  const expandedBefore = useStore((s) => s.expandedBefore)
   const connections = useStore((s) => s.connections)
   const hint = useStore((s) => s.ui.connectHintStepId)
   const draft = useStore((s) => s.draft)
@@ -34,7 +36,7 @@ export function useVisible() {
       if (own) {
         // branch trails of yours only appear once they have steps
         if (trail.id !== OWN_TRAIL && tSteps.length === 0) continue
-        const rect = frameRect(trail, tSteps, saves, notesHere, sizes)
+        const rect = frameRect(trail, tSteps, saves, notesHere, sizes, headerMinWidth(trail.title, '', ''))
         frames.push({ trail, rect, state: 'own', steps: tSteps })
         visibleSteps.push(...tSteps)
         continue
@@ -42,7 +44,7 @@ export function useVisible() {
       const bs = branchState[trail.id] ?? 'hidden'
       if (bs === 'hidden') continue
       if (bs === 'expanded') {
-        const rect = frameRect(trail, tSteps, saves, notesHere, sizes, 1280)
+        const rect = frameRect(trail, tSteps, saves, notesHere, sizes, headerMinWidth(trail.title, ` · ${users[trail.ownerId].name}’s branch`, 'Collapse'))
         frames.push({ trail, rect, state: 'expanded', steps: tSteps })
         visibleSteps.push(...tSteps)
       } else {
@@ -60,7 +62,7 @@ export function useVisible() {
         }
         const shown = tSteps.filter((s) => linked.has(s.id))
         if (shown.length === 0) continue
-        const rect = frameRect(trail, shown, saves, [], sizes, 460)
+        const rect = frameRect(trail, shown, saves, [], sizes, headerMinWidth(trail.title, ` · ${users[trail.ownerId].name}’s branch`, expandedBefore[trail.id] ? 'Expand' : `Add ${users[trail.ownerId].name}’s branch`))
         // the "draw from one of yours to here" hint hangs below the card while a link is waiting
         if (bs === 'ghost') rect.h += 40
         frames.push({ trail, rect, state: bs, steps: shown })
@@ -76,5 +78,5 @@ export function useVisible() {
     const ownFrame = frames.find((f) => f.trail.id === OWN_TRAIL)!
 
     return { frames, visibleSteps, visibleConnections, ownFrame, notes: visibleNotes }
-  }, [trails, steps, saves, thoughts, branchState, connections, hint, draft, sizes])
+  }, [trails, steps, saves, thoughts, branchState, connections, hint, draft, sizes, expandedBefore])
 }

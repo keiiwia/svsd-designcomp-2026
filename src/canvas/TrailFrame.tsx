@@ -26,15 +26,12 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
   const owner = users[trail.ownerId]
   const opened = useStore((s) => !!s.expandedBefore[trail.id])
   const mo = useMotion()
-  // the frame eases between its collapsed and expanded size; while dragging or placing it follows instantly
-  const [easing, setEasing] = useState(false)
-  const first = useRef(true)
-  useEffect(() => {
-    if (first.current) { first.current = false; return }
-    setEasing(true)
-    const t = window.setTimeout(() => setEasing(false), 700)
-    return () => window.clearTimeout(t)
-  }, [state])
+  // the frame eases between its collapsed and expanded size; while dragging or placing it follows instantly.
+  // decided during render (not in an effect) so the first paint after a state change already eases
+  const prevState = useRef(state)
+  const easeUntil = useRef(0)
+  if (prevState.current !== state) { prevState.current = state; easeUntil.current = performance.now() + 700 }
+  const easing = performance.now() < easeUntil.current
 
   useEffect(() => { if (editing) { setVal(trail.title); setTimeout(() => inputRef.current?.select(), 0) } }, [editing, trail.title])
 

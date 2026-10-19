@@ -178,7 +178,7 @@ export function EdgesLayer({
     const mx = (c.x + to.x) / 2
     lines.push(
       <path key={`thread-${n.id}`} d={`M ${c.x} ${c.y} C ${mx} ${c.y}, ${mx} ${to.y}, ${to.x} ${to.y}`}
-        stroke="#d4d0c8" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeDasharray={n.from ? '2 6' : undefined} />,
+        stroke="#d4d0c8" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeDasharray="2 6" />,
     )
   }
 

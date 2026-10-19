@@ -127,7 +127,7 @@ export const nearbyLayout: Record<string, { dx: number; dy: number; anchor: 'rig
   n4: { dx: 60, dy: 44, anchor: 'bottom' },
 }
 
-export const WELCOME = ['Welcome back, Adam.', 'Got a new idea to rabbit hole through?']
+export const WELCOME = ['Got a new idea to rabbit hole through?']
 
 export const ownTrailNote: TrailNote = {
   title: 'Tiny people, big things',

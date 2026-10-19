@@ -41,6 +41,7 @@ Built and checked in the browser at 1440×1024:
 - Link, in place: the Make a connection buttons now say Link, and linking from a nearby or suggested card drops that person's trail right where the card was (nudged clear of your frame) with no camera jump; a branch that would open on top of your frame slides below it when expanded.
 - Branches stay put: Add/Expand opens a branch where it sits (no camera jump; it only shifts by the smallest amount that keeps every frame's heading reachable), Collapse eases the frame down with the cards fading out, and once a branch has been opened its button says Expand instead of Add.
 - Nearby and suggestion cards: hover grows the card from its left edge (the top never moves; image and Link unfold beneath, eased both ways), the Open button is gone (click the card to open), and picking one suggestion, from the card or from its detail view, dismisses the rest and lands the ghost on that card's spot.
+- Frames size to their steps and never narrower than their heading (avatar, title, grip, a gap, then the Collapse / Add / Expand button); collapse eases from the first frame; the welcome header is gone (only the italic line stays); every thread to a nearby or suggested reference is dotted.
 - Not yet done: the real `dunes.mp4` clip (drop it in `public/video/dunes.mp4` and the detail view picks it up automatically), Walk mode is just the detail view, the mic button and the search bar are visual only.
 
 **To deploy:** the folder is a git repo now with one commit. Run these once (the remote add needs your approval):

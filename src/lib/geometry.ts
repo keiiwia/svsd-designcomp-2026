@@ -59,6 +59,18 @@ export function frameRect(
   return { x, y, w, h }
 }
 
+/**
+ * The narrowest a frame can be and still show its heading in one line:
+ * avatar + title (+ "· name's branch") + grip, a gap, then the Collapse / Add / Expand button.
+ */
+export function headerMinWidth(title: string, suffix: string, button: string): number {
+  const mono = 7.3      // IBM Plex Mono at 12px
+  const sans = 6.3      // Inter medium at 11px
+  const label = 19 + 15 + 8 + (title.length + suffix.length) * mono + 8 + 20
+  const btn = button ? button.length * sans + 24 + 14 : 0
+  return Math.ceil(label + 28 + btn + 16)
+}
+
 export function center(r: Rect): Pt { return { x: r.x + r.w / 2, y: r.y + r.h / 2 } }
 
 /** Point on the boundary of r closest to the direction of target. */
