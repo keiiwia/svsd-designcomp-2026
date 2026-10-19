@@ -178,7 +178,7 @@ export function EdgesLayer({
     const mx = (c.x + to.x) / 2
     lines.push(
       <path key={`thread-${n.id}`} d={`M ${c.x} ${c.y} C ${mx} ${c.y}, ${mx} ${to.y}, ${to.x} ${to.y}`}
-        stroke="#d9d5ce" strokeWidth={1} fill="none" strokeDasharray={n.from ? '3 4' : undefined} />,
+        stroke="#d4d0c8" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeDasharray={n.from ? '2 6' : undefined} />,
     )
   }
 
@@ -188,7 +188,7 @@ export function EdgesLayer({
     const a = rectOf(n.id), b = rectOf(n.stepId)
     const p = edgePoint(a, { x: b.x + b.w / 2, y: b.y + b.h / 2 })
     const q = edgePoint(b, { x: a.x + a.w / 2, y: a.y + a.h / 2 })
-    lines.push(<line key={`tether-${n.id}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="#c9c5be" strokeWidth={1} strokeDasharray="3 4" />)
+    lines.push(<line key={`tether-${n.id}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="#c9c5be" strokeWidth={1.8} strokeLinecap="round" strokeDasharray="2 6" />)
   }
 
   for (const c of connections) {
@@ -209,8 +209,8 @@ export function EdgesLayer({
       const edgeB = c.anchor ? edgePoint(b, start) : bTarget
       const mid = { x: (start.x + edgeB.x) / 2, y: (start.y + edgeB.y) / 2 }
       lines.push(
-        <motion.line key={c.id} x1={liveStart.x} y1={liveStart.y} x2={liveEnd.x} y2={liveEnd.y} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 1.5 : 1}
-          strokeDasharray={dragging ? '4 4' : undefined}
+        <motion.line key={c.id} x1={liveStart.x} y1={liveStart.y} x2={liveEnd.x} y2={liveEnd.y} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 2.6 : 2}
+          strokeDasharray={dragging ? '3 7' : undefined} strokeLinecap="round"
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.edgeDraw, ease: 'easeInOut' }} />,
       )
       marks.push(
@@ -220,7 +220,7 @@ export function EdgesLayer({
         </g>,
       )
       if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} toStepId={c.toStepId} offset={c.labelOffset} onHot={setHot} />)
-      if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#c9c5be" strokeWidth={1} strokeDasharray="2 3" />)
+      if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#c9c5be" strokeWidth={1.6} strokeLinecap="round" strokeDasharray="2 5" />)
     } else {
       // blue curve from the bottom of yours to the spot on theirs
       const s = dragging?.end === 'from' ? liveStart : c.fromAnchor ? anchorPoint(a, c.fromAnchor) : { x: a.x + a.w / 2, y: a.y + a.h }
@@ -229,7 +229,7 @@ export function EdgesLayer({
       const c2 = { x: e.x, y: e.y - Math.abs(e.y - s.y) * 0.5 }
       const mid = cubic(s, c1, c2, e, 0.5)
       lines.push(
-        <motion.path key={c.id} d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 1.5 : 1} fill="none" strokeDasharray={dragging ? '4 4' : undefined}
+        <motion.path key={c.id} d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 2.6 : 2} fill="none" strokeDasharray={dragging ? '3 7' : undefined} strokeLinecap="round"
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.crossDraw, ease: 'easeInOut' }} />,
       )
       marks.push(
@@ -239,7 +239,7 @@ export function EdgesLayer({
         </g>,
       )
       if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} toStepId={c.toStepId} offset={c.labelOffset} onHot={setHot} />)
-      if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#c9c5be" strokeWidth={1} strokeDasharray="2 3" />)
+      if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#c9c5be" strokeWidth={1.6} strokeLinecap="round" strokeDasharray="2 5" />)
     }
   }
 
@@ -255,9 +255,9 @@ export function EdgesLayer({
       : `M ${s.x} ${s.y} L ${end.x} ${end.y}`
     lines.push(
       <g key="draft">
-        <path d={d} stroke="#4a62c4" strokeWidth={1.5} fill="none" />
+        <path d={d} stroke="#4a62c4" strokeWidth={2.2} fill="none" strokeLinecap="round" />
         <path d={`M ${end.x} ${end.y} C ${end.x} ${(end.y + popoverTop.y) / 2}, ${popoverTop.x} ${(end.y + popoverTop.y) / 2}, ${popoverTop.x} ${popoverTop.y}`}
-          stroke="#4a62c4" strokeWidth={1.5} fill="none" strokeDasharray="3 3" />
+          stroke="#4a62c4" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeDasharray="2 6" />
       </g>,
     )
     marks.push(
@@ -276,7 +276,7 @@ export function EdgesLayer({
     // the live line rides on top: it should follow the cursor over whatever it crosses
     marks.push(
       <g key="live">
-        <line x1={start.x} y1={start.y} x2={p.x} y2={p.y} stroke="#4a62c4" strokeWidth={1.5} strokeDasharray="4 4" />
+        <line x1={start.x} y1={start.y} x2={p.x} y2={p.y} stroke="#4a62c4" strokeWidth={2.2} strokeLinecap="round" strokeDasharray="3 7" />
         <circle cx={start.x} cy={start.y} r={3} fill="white" stroke="#4a62c4" />
         <circle cx={p.x} cy={p.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
       </g>,
