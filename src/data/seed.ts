@@ -41,15 +41,15 @@ export const keiiwiaSaves: Save[] = [
 // Nearby references from other people (one-step trails so the detail view works)
 export const nearbySaves: Save[] = [
   { id: 'n-song', ownerId: 'kellysu', medium: 'song', mediumLabel: 'Song', title: 'Ceilings',
-    thought: 'this song makes my room feel like somewhere else', thumb: '/img/audio-pill.png', imageHeight: 70, day: '' },
+    thought: 'this song makes my room feel like somewhere else', thumb: '/img/audio-pill.png', imageHeight: 84, cardWidth: 212, day: '' },
   { id: 'n-textile', ownerId: 'mira', medium: 'textile', mediumLabel: 'Textile', title: 'Worn hem',
-    thought: 'you can see where the hem wore down from walking', day: '' },
+    thought: 'you can see where the hem wore down from walking', cardWidth: 212, day: '' },
   { id: 'n-object', ownerId: 'jun', medium: 'object', mediumLabel: 'Object', title: 'Folding stool',
-    thought: 'folds down small enough to take anywhere', day: '' },
+    thought: 'folds down small enough to take anywhere', cardWidth: 212, day: '' },
   { id: 'n-writing', ownerId: 'theo', medium: 'writing', mediumLabel: 'Writing', title: 'A list',
-    thought: 'a list of colours my grandmother wouldn’t wear', day: '' },
+    thought: 'a list of colours my grandmother wouldn’t wear', cardWidth: 212, day: '' },
   { id: 'n-photo', ownerId: 'lena', medium: 'photo', mediumLabel: 'Photograph', title: 'Red coat',
-    thought: 'red coat, grey hills. the only colour in the shot', day: '' },
+    thought: 'red coat, grey hills. the only colour in the shot', cardWidth: 212, day: '' },
 ]
 
 export const allSaves: Record<string, Save> = Object.fromEntries(

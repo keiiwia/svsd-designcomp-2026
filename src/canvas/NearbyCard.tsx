@@ -59,7 +59,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepI
         style={{ transformOrigin: 'left top', boxShadow: hover ? '0 10px 24px rgba(31,26,20,0.1)' : '0 2px 6px rgba(31,26,20,0.06)', transition: 'box-shadow 0.22s' }}
       >
         <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-left flex flex-col gap-1.5 w-full" title="Open to look closer">
-          <span className="flex items-center gap-1.5 text-[10px] font-medium text-ink-2"><KindDot userId={trail.ownerId} /> {save.mediumLabel}</span>
+          <span className="inline-flex items-center gap-1.5 w-fit rounded-full border border-line bg-white px-2 py-[3px] text-[10px] font-medium leading-[12px] text-ink-2"><KindDot userId={trail.ownerId} /> {save.mediumLabel}</span>
           <span className="text-[12px] leading-[16px] text-ink">“{save.thought}”</span>
           <span className="flex items-center gap-1.5 text-[10px] text-ink-3"><Avatar userId={trail.ownerId} size={13} ring={false} /> {u.name}’s trail</span>
         </button>

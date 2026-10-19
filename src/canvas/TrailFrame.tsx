@@ -101,9 +101,9 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
             e.stopPropagation()
             useDrag.getState().set({ kind: 'frame', trailId: trail.id, startClient: { x: e.clientX, y: e.clientY }, startOrigin: { ...trail.origin } })
           }}
-          className="cursor-grab active:cursor-grabbing text-ink-4 hover:text-ink-2 px-1 -mx-1"
+          className="flex items-center self-center h-[16px] cursor-grab active:cursor-grabbing text-ink-4 hover:text-ink-2 px-1 -mx-1"
         >
-          <Icon name="grip" size={13} />
+          <Icon name="grip" size={13} className="block" />
         </button>
       </div>
 
