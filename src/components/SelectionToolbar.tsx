@@ -7,7 +7,7 @@ import { Tip } from '../panels/Toolbar'
 import { users } from '../data/seed'
 import type { Step, Trail } from '../types'
 
-function MiniButton({ icon, label, onClick, disabled, size = 22 }: { icon: IconName; label: string; onClick: () => void; disabled?: boolean; size?: number }) {
+function MiniButton({ icon, label, onClick, disabled, active, size = 22 }: { icon: IconName; label: string; onClick: () => void; disabled?: boolean; active?: boolean; size?: number }) {
   const [hover, setHover] = useState(false)
   return (
     <div className="relative" onPointerEnter={() => setHover(true)} onPointerLeave={() => setHover(false)}>
@@ -15,7 +15,7 @@ function MiniButton({ icon, label, onClick, disabled, size = 22 }: { icon: IconN
         aria-label={label}
         disabled={disabled}
         onClick={(e) => { e.stopPropagation(); onClick() }}
-        className={clsx('w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-white transition-colors', disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/12')}
+        className={clsx('w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-white transition-colors', disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/12', active && 'bg-white/16')}
       >
         <Icon name={icon} size={size} />
       </button>
@@ -39,6 +39,8 @@ export function SelectionToolbar({ step, trail }: { step: Step; trail: Trail }) 
   const placed = useStore((s) => s.placed)
   const save = saves[step.saveId]
   const [branch, setBranch] = useState(false)
+  const suggestFrom = useStore((s) => s.suggestFrom)
+  const suggesting = useStore((s) => s.ui.suggestForStepId === step.id)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,7 +67,8 @@ export function SelectionToolbar({ step, trail }: { step: Step; trail: Trail }) 
         ) : (
           <MiniButton icon="noteEdit" label="Add a thought" onClick={() => { addNote(trail.id, { x: step.pos.x, y: step.pos.y + 150 }, ''); selectStep(null) }} />
         )}
-        <MiniButton icon="branchMini" label="Branch from here" size={19} onClick={() => setBranch((b) => !b)} />
+        <MiniButton icon="branchMini" label="Branch from here" size={19} active={suggesting}
+          onClick={() => { const next = !branch; setBranch(next); suggestFrom(next ? step.id : null) }} />
         <MiniButton icon="expand" label="Open" onClick={() => openDetail(step.id)} />
       </motion.div>
 
@@ -80,6 +83,7 @@ export function SelectionToolbar({ step, trail }: { step: Step; trail: Trail }) 
             <p className="px-2.5 pt-1.5 pb-1 text-[11px] text-ink-3">
               What could come after <span className="text-ink font-medium">{save.title}</span>{own ? '' : ` on ${owner.name}’s trail`}?
             </p>
+            <p className="px-2.5 pb-1.5 text-[11px] text-ink-3">Other people’s references are around the card. Or pick one of yours:</p>
             {candidates.map((c) => (
               <button
                 key={c.id}

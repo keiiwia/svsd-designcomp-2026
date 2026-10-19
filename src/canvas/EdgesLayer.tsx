@@ -113,7 +113,7 @@ export function EdgesLayer({
   connections, nearby, ownFrame, popoverTop, toCanvas, layers, notes, visibleStepIds,
 }: {
   connections: Connection[]
-  nearby: { id: string; pos: Pt; w: number; h: number }[]
+  nearby: { id: string; pos: Pt; w: number; h: number; from?: Pt }[]
   ownFrame: Rect
   popoverTop: Pt | null
   toCanvas: (p: Pt) => Pt
@@ -174,10 +174,11 @@ export function EdgesLayer({
   const frameMid = { x: ownFrame.x + ownFrame.w, y: ownFrame.y + ownFrame.h / 2 }
   for (const n of nearby) {
     const c = { x: n.pos.x + n.w / 2, y: n.pos.y + n.h / 2 }
-    const mx = (c.x + frameMid.x) / 2
+    const to = n.from ?? frameMid
+    const mx = (c.x + to.x) / 2
     lines.push(
-      <path key={`thread-${n.id}`} d={`M ${c.x} ${c.y} C ${mx} ${c.y}, ${mx} ${frameMid.y}, ${frameMid.x} ${frameMid.y}`}
-        stroke="#d9d5ce" strokeWidth={1} fill="none" />,
+      <path key={`thread-${n.id}`} d={`M ${c.x} ${c.y} C ${mx} ${c.y}, ${mx} ${to.y}, ${to.x} ${to.y}`}
+        stroke="#d9d5ce" strokeWidth={1} fill="none" strokeDasharray={n.from ? '3 4' : undefined} />,
     )
   }
 

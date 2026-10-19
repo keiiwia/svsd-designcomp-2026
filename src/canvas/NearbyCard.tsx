@@ -8,11 +8,24 @@ import type { Save, Step, Trail } from '../types'
 import type { Pt } from '../lib/geometry'
 import { spring, useMotion } from '../lib/motion'
 
-export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; save: Save; trail: Trail; pos: Pt; order?: number }) {
+export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepId }: { step: Step; save: Save; trail: Trail; pos: Pt; order?: number; quick?: boolean; fromStepId?: string | null }) {
   const [hover, setHover] = useState(false)
   const mo = useMotion()
   const openDetail = useStore((s) => s.openDetail)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
+  const fromOwn = useStore((s) => (fromStepId ? s.trails[s.steps[fromStepId]?.trailId ?? '']?.ownerId === 'you' : false))
+  const connect = () => {
+    makeConnectionFrom(step.id)
+    if (fromStepId && fromOwn) {
+      // the suggestion came from one of your cards: go straight to writing the because
+      const from = fromStepId
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const st = useStore.getState()
+        st.suggestFrom(null)
+        st.startDraft(from, step.id)
+      }))
+    } else useStore.getState().suggestFrom(null)
+  }
   const nThoughts = useStore((s) => Object.values(s.thoughts).filter((t) => t.stepId === step.id).length)
   const u = users[trail.ownerId]
 
@@ -20,7 +33,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: mo.nearbyDelay + order * mo.nearbyStagger, ease: 'easeOut' }}
+      transition={{ duration: quick ? 0.28 : 0.4, delay: (quick ? 0.05 : mo.nearbyDelay) + order * (quick ? 0.06 : mo.nearbyStagger), ease: 'easeOut' }}
       className="absolute"
       style={{ left: pos.x, top: pos.y, zIndex: hover ? 50 : 14 }}
       onPointerEnter={() => setHover(true)}
@@ -56,7 +69,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0 }: { step: Step; 
             {nThoughts > 0 && <span className="flex items-center gap-1.5"><Icon name="lock" size={10} /> {nThoughts} thoughts here</span>}
           </div>
           <div className="flex gap-2">
-            <button onClick={(e) => { e.stopPropagation(); makeConnectionFrom(step.id) }}
+            <button onClick={(e) => { e.stopPropagation(); connect() }}
               className="flex items-center gap-1.5 bg-ink text-white rounded-full px-3 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap">
               <Icon name="connect" size={11} /> Make a connection
             </button>

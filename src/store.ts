@@ -28,6 +28,8 @@ export interface UIState {
   overview: boolean
   idea: { mode: 'edit'; saveId: string } | { mode: 'create'; fromStepId: string } | null
   sidebarHidden: boolean
+  // other people's references fanned out around this step after 'Branch from here'
+  suggestForStepId: string | null
 }
 
 export interface TrailsState {
@@ -101,6 +103,7 @@ export interface TrailsState {
   endWalk: () => void
   setOverview: (v: boolean) => void
   toggleSidebar: () => void
+  suggestFrom: (stepId: string | null) => void
   reset: () => void
 }
 
@@ -117,6 +120,7 @@ const initialUI: UIState = {
   overview: false,
   idea: null,
   sidebarHidden: false,
+  suggestForStepId: null,
 }
 
 export function freshState() {
@@ -178,6 +182,7 @@ export const useStore = create<TrailsState>()(
           ui: {
             ...s.ui,
             selectedStepId: stepId,
+            suggestForStepId: stepId === s.ui.suggestForStepId ? s.ui.suggestForStepId : null,
             // picking a card by hand dismisses an action panel so the selection can show
             sidebar: stepId && (s.ui.sidebar.kind === 'connection' || s.ui.sidebar.kind === 'branchFrom') ? { kind: 'saves' } : s.ui.sidebar,
           },
@@ -186,7 +191,7 @@ export const useStore = create<TrailsState>()(
       setEditingTitle: (editingTitle) => set((s) => ({ ui: { ...s.ui, editingTitle } })),
 
       startDraft: (fromStepId, toStepId, anchor, t) =>
-        set({ draft: { fromStepId, toStepId, anchor, t, text: '', attachments: [] } }),
+        set((s) => ({ draft: { fromStepId, toStepId, anchor, t, text: '', attachments: [] }, ui: { ...s.ui, connectHintStepId: null } })),
       updateDraft: (text) => set((s) => (s.draft ? { draft: { ...s.draft, text } } : {})),
       toggleDraftAttachment: (saveId) =>
         set((s) => {
@@ -475,6 +480,7 @@ export const useStore = create<TrailsState>()(
         }),
       endWalk: () => set((s) => ({ ui: { ...s.ui, walk: null, tool: 'select' } })),
       setOverview: (overview) => set((s) => ({ ui: { ...s.ui, overview } })),
+      suggestFrom: (stepId) => set((s) => ({ ui: { ...s.ui, suggestForStepId: stepId } })),
       toggleSidebar: () => set((s) => ({ ui: { ...s.ui, sidebarHidden: !s.ui.sidebarHidden } })),
       reset: () => set({ ...freshState() }),
     }),

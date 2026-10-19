@@ -25,8 +25,10 @@ export function Canvas() {
   const steps = useStore((s) => s.steps)
   const trails = useStore((s) => s.trails)
   const saves = useStore((s) => s.saves)
+  const connections = useStore((s) => s.connections)
   const layers = useStore((s) => s.ui.layers)
   const nearbyVisible = useStore((s) => s.nearbyVisible)
+  const suggestFor = useStore((s) => s.ui.suggestForStepId)
   const branchState = useStore((s) => s.branchState)
   const thoughtsAll = useStore((s) => s.thoughts)
   const sizes = useSizes((s) => s.sizes)
@@ -222,7 +224,7 @@ export function Canvas() {
   const ownCount = vis.ownFrame.steps.length
 
   const nearby = useMemo(() => {
-    if (!nearbyVisible || !layers.everyone) return []
+    if (!nearbyVisible || !layers.everyone || suggestFor) return [] // suggestions take over while branching
     if (Object.values(branchState).some((b) => b && b !== 'hidden')) return []
     const out: { id: string; pos: Pt; w: number; h: number }[] = []
     for (const [stepId, lay] of Object.entries(nearbyLayout)) {
@@ -236,7 +238,41 @@ export function Canvas() {
       out.push({ id: stepId, pos: { x, y }, w, h })
     }
     return out
-  }, [nearbyVisible, layers.everyone, steps, branchState, ownFrame])
+  }, [nearbyVisible, layers.everyone, steps, branchState, ownFrame, suggestFor])
+
+  // 'Branch from here': other people's references fanned out around the selected card
+  const suggested = useMemo(() => {
+    const from = suggestFor ? steps[suggestFor] : null
+    if (!from) return []
+    const fromTrail = trails[from.trailId]
+    const r = stepRect(from, fromTrail, saves[from.saveId], sizes)
+    const linked = new Set<string>()
+    for (const c of Object.values(connections)) {
+      if (c.fromStepId === from.id) linked.add(c.toStepId)
+      if (c.toStepId === from.id) linked.add(c.fromStepId)
+    }
+    const pool = Object.values(steps).filter((st) => {
+      if (st.trailId === from.trailId || linked.has(st.id)) return false
+      const t = trails[st.trailId]
+      if (!t || t.ownerId === 'you') return false
+      const bs = branchState[st.trailId]
+      return !bs || bs === 'hidden' // already on the canvas → no need to suggest it
+    })
+    // cross-media first: the rule is that a connection should change medium
+    pool.sort((a, b) => Number(saves[a.saveId].medium === saves[from.saveId].medium) - Number(saves[b.saveId].medium === saves[from.saveId].medium))
+    // at most two from any one trail, so more voices show up
+    const perTrail: Record<string, number> = {}
+    const picked = pool.filter((st) => { perTrail[st.trailId] = (perTrail[st.trailId] ?? 0) + 1; return perTrail[st.trailId] <= 2 }).slice(0, 5)
+    const w = 170, h = 96, gapX = 70, gapY = 118
+    const anchor = { x: r.x + r.w / 2, y: r.y + r.h / 2 }
+    // a column to the right of the card, then a row beneath it (the left side usually holds the previous step)
+    return picked.map((st, i) => {
+      const pos = i < 3
+        ? { x: r.x + r.w + gapX, y: r.y - 10 + i * gapY }
+        : { x: r.x - 40 + (i - 3) * (w + 30), y: r.y + r.h + 70 }
+      return { id: st.id, pos, w, h, from: anchor }
+    })
+  }, [suggestFor, steps, trails, saves, sizes, connections, branchState])
 
   const popover = useMemo(() => {
     if (!draft || !ref.current) return null
@@ -318,8 +354,13 @@ export function Canvas() {
             const st = steps[n.id]
             return <NearbyCard key={n.id} step={st} save={saves[st.saveId]} trail={trails[st.trailId]} pos={n.pos} order={i} />
           })}
+          {/* suggestions after 'Branch from here' */}
+          {suggested.map((n, i) => {
+            const st = steps[n.id]
+            return <NearbyCard key={`sg-${n.id}`} step={st} save={saves[st.saveId]} trail={trails[st.trailId]} pos={n.pos} order={i} quick fromStepId={suggestFor} />
+          })}
 
-          <EdgesLayer connections={layers.reference ? vis.visibleConnections : []} nearby={nearby} ownFrame={ownFrame} layers={layers}
+          <EdgesLayer connections={layers.reference ? vis.visibleConnections : []} nearby={[...nearby, ...suggested]} ownFrame={ownFrame} layers={layers}
             notes={vis.notes} visibleStepIds={new Set(vis.visibleSteps.map((st) => st.id))}
             popoverTop={popover ? popover.attach : null} toCanvas={toCanvas} />
 
