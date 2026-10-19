@@ -114,6 +114,7 @@ export function EdgesLayer({
   const trailOf = (id: string) => steps[id]?.trailId ?? steps[thoughts[id]?.stepId ?? '']?.trailId
 
   const lines: React.ReactNode[] = []
+  const marks: React.ReactNode[] = []
   const chips: React.ReactNode[] = []
 
   // faint threads from nearby cards to your frame
@@ -147,9 +148,11 @@ export function EdgesLayer({
     if (!cross) {
       const mid = { x: (start.x + bTarget.x) / 2, y: (start.y + bTarget.y) / 2 }
       lines.push(
+        <motion.line key={c.id} x1={start.x} y1={start.y} x2={bTarget.x} y2={bTarget.y} stroke="#c9c5be" strokeWidth={1}
+          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.edgeDraw, ease: 'easeInOut' }} />,
+      )
+      marks.push(
         <g key={c.id}>
-          <motion.line x1={start.x} y1={start.y} x2={bTarget.x} y2={bTarget.y} stroke="#c9c5be" strokeWidth={1}
-            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.edgeDraw, ease: 'easeInOut' }} />
           <circle cx={start.x} cy={start.y} r={3} fill="white" stroke="#aba59c" />
           {c.anchor ? (
             <circle cx={bTarget.x} cy={bTarget.y} r={6} fill="rgba(255,255,255,0.7)" stroke="#aba59c" strokeWidth={1.2} />
@@ -167,9 +170,11 @@ export function EdgesLayer({
       const c2 = { x: e.x, y: e.y - Math.abs(e.y - s.y) * 0.5 }
       const mid = cubic(s, c1, c2, e, 0.5)
       lines.push(
+        <motion.path key={c.id} d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke="#4a62c4" strokeWidth={1.5} fill="none"
+          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.crossDraw, ease: 'easeInOut' }} />,
+      )
+      marks.push(
         <g key={c.id}>
-          <motion.path d={`M ${s.x} ${s.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${e.x} ${e.y}`} stroke="#4a62c4" strokeWidth={1.5} fill="none"
-            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: mo.crossDraw, ease: 'easeInOut' }} />
           <circle cx={s.x} cy={s.y} r={3} fill="white" stroke="#4a62c4" />
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
@@ -191,10 +196,14 @@ export function EdgesLayer({
     lines.push(
       <g key="draft">
         <path d={d} stroke="#4a62c4" strokeWidth={1.5} fill="none" />
-        <circle cx={s.x} cy={s.y} r={3} fill="white" stroke="#4a62c4" />
-        <circle cx={end.x} cy={end.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         <path d={`M ${end.x} ${end.y} C ${end.x} ${(end.y + popoverTop.y) / 2}, ${popoverTop.x} ${(end.y + popoverTop.y) / 2}, ${popoverTop.x} ${popoverTop.y}`}
           stroke="#4a62c4" strokeWidth={1.5} fill="none" strokeDasharray="3 3" />
+      </g>,
+    )
+    marks.push(
+      <g key="draft">
+        <circle cx={s.x} cy={s.y} r={3} fill="white" stroke="#4a62c4" />
+        <circle cx={end.x} cy={end.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
       </g>,
     )
   }
@@ -204,7 +213,8 @@ export function EdgesLayer({
     const a = rectOf(drag.fromStepId)
     const p = toCanvas(drag.client)
     const start = edgePoint(a, p)
-    lines.push(
+    // the live line rides on top: it should follow the cursor over whatever it crosses
+    marks.push(
       <g key="live">
         <line x1={start.x} y1={start.y} x2={p.x} y2={p.y} stroke="#4a62c4" strokeWidth={1.5} strokeDasharray="4 4" />
         <circle cx={start.x} cy={start.y} r={3} fill="white" stroke="#4a62c4" />
@@ -215,8 +225,12 @@ export function EdgesLayer({
 
   return (
     <>
-      <svg className="absolute left-0 top-0 overflow-visible pointer-events-none" width={1} height={1} style={{ zIndex: 12 }}>
+      {/* connectors run beneath the cards; only their small end marks sit on top */}
+      <svg className="absolute left-0 top-0 overflow-visible pointer-events-none" width={1} height={1} style={{ zIndex: 3 }}>
         {lines}
+      </svg>
+      <svg className="absolute left-0 top-0 overflow-visible pointer-events-none" width={1} height={1} style={{ zIndex: 12 }}>
+        {marks}
       </svg>
       {chips}
     </>
