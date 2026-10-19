@@ -64,7 +64,7 @@ export function frameRect(
  * avatar + title (+ "· name's branch") + grip, a gap, then the Collapse / Add / Expand button.
  */
 export function headerMinWidth(title: string, suffix: string, button: string): number {
-  const mono = 7.3      // IBM Plex Mono at 12px
+  const mono = 6.6      // Inter medium at 12px (the heading used to be mono)
   const sans = 6.3      // Inter medium at 11px
   const label = 19 + 15 + 8 + (title.length + suffix.length) * mono + 8 + 20
   const btn = button ? button.length * sans + 24 + 14 : 0

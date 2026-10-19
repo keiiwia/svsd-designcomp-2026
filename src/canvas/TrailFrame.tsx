@@ -70,7 +70,7 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
       data-frame={trail.id}
     >
       {/* label */}
-      <div className="absolute left-[19px] top-[13px] flex items-center gap-2 font-mono text-[12px] text-ink-2 whitespace-nowrap" style={{ zIndex: 2 }}>
+      <div className="absolute left-[19px] top-[13px] flex items-center gap-2 font-sans text-[12px] font-medium text-ink-2 whitespace-nowrap" style={{ zIndex: 2 }}>
         <Avatar userId={trail.ownerId} size={15} />
         {editing ? (
           <input
@@ -80,14 +80,14 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
             onBlur={commit}
             onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditingTitle(false) }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="font-mono text-[12px] text-ink bg-white rounded-md px-1.5 py-0.5 outline outline-2 outline-you/70"
-            style={{ width: Math.max(120, val.length * 7.5 + 20) }}
+            className="font-sans text-[12px] font-medium text-ink bg-white rounded-md px-1.5 py-0.5 outline outline-2 outline-you/70"
+            style={{ width: Math.max(120, val.length * 6.6 + 20) }}
           />
         ) : (
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); if (own) { useStore.getState().selectStep(null); setEditingTitle(true) } else if (state === 'expanded') setSidebar({ kind: 'branch', trailId: trail.id }) }}
-            className={clsx('font-mono text-[12px] rounded px-1 -mx-1', own ? 'hover:bg-white/60 text-ink-2' : 'text-ink-2')}
+            className={clsx('font-sans text-[12px] font-medium rounded px-1 -mx-1', own ? 'hover:bg-white/60 text-ink-2' : 'text-ink-2')}
             title={own ? 'Rename trail' : undefined}
           >
             {trail.title}
