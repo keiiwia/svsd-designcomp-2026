@@ -369,7 +369,14 @@ export const useStore = create<TrailsState>()(
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
       togglePin: (stepId) => set((s) => ({ pinned: { ...s.pinned, [stepId]: !s.pinned[stepId] } })),
-      updateSave: (id, patch) => set((s) => (s.saves[id] ? { saves: { ...s.saves, [id]: { ...s.saves[id], ...patch } } } : {})),
+      updateSave: (id, patch) =>
+        set((s) => {
+          const cur = s.saves[id]
+          if (!cur) return {}
+          const rewritten = patch.thought !== undefined && patch.thought.trim() !== cur.thought.trim() && cur.thought.trim() !== ''
+          const previous = rewritten ? [{ thought: cur.thought, at: new Date().toISOString() }, ...(cur.previous ?? [])].slice(0, 20) : cur.previous
+          return { saves: { ...s.saves, [id]: { ...cur, ...patch, previous } } }
+        }),
       openIdea: (idea) => set((s) => ({ ui: { ...s.ui, idea } })),
       // a written idea becomes a text reference of yours, ready to place or branch with
       addIdea: (title, thought) => {

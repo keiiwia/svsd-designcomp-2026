@@ -70,10 +70,24 @@ function parseDuration(d?: string) {
 
 export function DetailModal() {
   const stepId = useStore((s) => s.ui.detailStepId)
-  return <AnimatePresence>{stepId && <Detail key={stepId} stepId={stepId} />}</AnimatePresence>
+  // one modal instance: moving between references repopulates it instead of re-opening it
+  return <AnimatePresence>{stepId && <Detail key="detail" stepId={stepId} />}</AnimatePresence>
 }
 
 function Detail({ stepId }: { stepId: string }) {
+  // where you came from inside the modal, so rabbit-holing always has a way back
+  const [trail_, setTrail_] = useState<string[]>([])
+  const prevId = useRef(stepId)
+  useEffect(() => {
+    if (prevId.current !== stepId) { setTrail_((t) => [...t, prevId.current].slice(-20)); prevId.current = stepId }
+  }, [stepId])
+  const goBack = () => {
+    const back = trail_[trail_.length - 1]
+    if (!back) return
+    setTrail_((t) => t.slice(0, -1))
+    prevId.current = back
+    useStore.getState().openDetail(back)
+  }
   const step = useStore((s) => s.steps[stepId])
   const save = useStore((s) => s.saves[step.saveId])
   const trail = useStore((s) => s.trails[step.trailId])
@@ -100,6 +114,7 @@ function Detail({ stepId }: { stepId: string }) {
   // playhead: starts at her anchor (0:41) and runs while "playing"
   const [t, setT] = useState(41)
   const now = Math.round(t)
+  useEffect(() => { setT(41); setVal(''); setPlaying(true) }, [stepId])
   useEffect(() => {
     if (!playing || !isVideo) return
     let last = performance.now()
@@ -242,7 +257,14 @@ function Detail({ stepId }: { stepId: string }) {
         <div className="w-[480px] shrink-0 border-l border-line px-10 py-9 flex flex-col gap-6 overflow-y-auto">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-[14px]"><Avatar userId={trail.ownerId} size={24} /> <span className="font-medium">{trail.ownerId === 'you' ? 'You' : owner.name}</span> <span className="text-ink-3">because</span></p>
-            <button onClick={() => close(null)} className="w-9 h-9 rounded-full border border-line flex items-center justify-center text-ink-2 hover:bg-paper"><Icon name="close" size={13} /></button>
+            <div className="flex items-center gap-2">
+              {trail_.length > 0 && (
+                <button onClick={goBack} className="h-9 rounded-full border border-line px-3 flex items-center gap-1.5 text-[12px] font-medium text-ink-2 hover:bg-paper whitespace-nowrap" title="Back to where you came from">
+                  ← Back
+                </button>
+              )}
+              <button onClick={() => close(null)} className="w-9 h-9 rounded-full border border-line flex items-center justify-center text-ink-2 hover:bg-paper"><Icon name="close" size={13} /></button>
+            </div>
           </div>
           <p className="text-[24px] leading-[33px] tracking-[-0.24px] text-ink">{because}</p>
           {trail.ownerId !== 'you' && !linkedToOwn && (

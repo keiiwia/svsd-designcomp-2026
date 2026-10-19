@@ -43,6 +43,12 @@ export function SelectionPanel({ stepId }: { stepId: string }) {
           {own ? 'your' : `${owner.name}’s`} step {step.index} · {save.mediumLabel.toLowerCase()}{save.duration ? ` · ${save.duration}` : save.day ? ` · ${save.day}` : ''}
         </p>
         <p className="text-[12.5px] text-ink-2 leading-[18px] pt-1">“{save.thought}”</p>
+        {save.previous && save.previous.length > 0 && (
+          <div className="flex flex-col gap-1 pt-1">
+            <p className="text-[10px] text-ink-3">Previous thoughts</p>
+            {save.previous.map((pv, i) => <p key={i} className="text-[12px] leading-[16px] text-ink-3 font-serif italic">“{pv.thought}”</p>)}
+          </div>
+        )}
         {because && !own && (
           <p className="text-[12px] text-ink leading-[17px] bg-paper rounded-[10px] px-3 py-2 mt-1"><span className="text-blue text-[10px] block">{owner.name} on why this came next</span>{because}</p>
         )}

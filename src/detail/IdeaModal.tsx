@@ -89,8 +89,15 @@ function Idea({ snapshot }: { snapshot: IdeaState }) {
               <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://" className="flex-1 bg-transparent outline-none" />
             </label>
           )}
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-[11px] text-ink-4">{idea.mode === 'edit' ? 'Rewrite as your opinion changes. The old words are yours to lose.' : 'It lands as a new step, with a because to write.'}</span>
+          {editing?.previous && editing.previous.length > 0 && (
+            <div className="flex flex-col gap-1.5 border-t border-line pt-3">
+              <p className="text-[11px] text-ink-3">Previous thoughts</p>
+              {editing.previous.map((pv, i) => (
+                <p key={i} className="text-[13px] leading-[18px] text-ink-2 font-serif italic">“{pv.thought}”</p>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
               <button onClick={close} className="text-[13px] text-ink-2 px-3 py-2 hover:text-ink">Cancel</button>
               <button onClick={save} className="bg-ink text-white rounded-full px-4 py-2 text-[13px] font-medium hover:bg-black">

@@ -24,6 +24,8 @@ export interface Save {
   cardWidth?: number
   duration?: string
   day: string
+  /** earlier versions of the thought, newest first: rewriting keeps the thinking */
+  previous?: { thought: string; at: string }[]
 }
 
 export interface Trail {

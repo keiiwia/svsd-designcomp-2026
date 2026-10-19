@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { useStore } from '../store'
 import { Avatar, Icon } from '../components/ui'
 import type { Pt } from '../lib/geometry'
-import { OWN_TRAIL } from '../data/seed'
+import { DISPLAY_NAME, OWN_TRAIL } from '../data/seed'
 import { spring, useMotion } from '../lib/motion'
 
 export function BecausePopover({ pos }: { pos: Pt }) {
@@ -47,7 +47,7 @@ export function BecausePopover({ pos }: { pos: Pt }) {
     >
       <div className="flex items-center gap-2">
         <Avatar userId="you" size={22} />
-        <span className="text-[14px] font-medium text-white/80">Because</span>
+        <span className="text-[14px] font-medium text-white/80">{DISPLAY_NAME}</span>
       </div>
       <textarea
         ref={ta}
@@ -57,7 +57,7 @@ export function BecausePopover({ pos }: { pos: Pt }) {
           if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (canLink) commit() }
           if (e.key === 'Escape') cancel()
         }}
-        placeholder="What connects these?"
+        placeholder="What connects these ideas?"
         className="w-full bg-transparent outline-none text-[21px] leading-[30px] tracking-[-0.17px] text-white placeholder:text-white/40"
         rows={2}
       />

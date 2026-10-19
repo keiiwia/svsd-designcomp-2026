@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { useStore, useSizes } from '../store'
 import { Avatar } from '../components/ui'
+import { users, DISPLAY_NAME } from '../data/seed'
 import { anchorPoint, edgePoint, stepRect, type Pt, type Rect } from '../lib/geometry'
 import type { Connection, Thought } from '../types'
 import { useDrag } from './drag'
 import { spring, useMotion } from '../lib/motion'
 
 /** A because chip: one click opens it for rewriting (it turns blue as you hover). Enter saves, Escape cancels. */
-function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number }) {
+function BecauseChip({ id, because, blue, authorId, pos, delay, toStepId }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number; toStepId: string }) {
   const update = useStore((s) => s.updateConnection)
+  const selectStep = useStore((s) => s.selectStep)
+  const mine = authorId === 'you'
   const mo = useMotion()
   const [selected, setSelected] = useState(false)
   const [hover, setHover] = useState(false)
@@ -40,18 +43,19 @@ function BecauseChip({ id, because, blue, authorId, pos, delay }: { id: string; 
         : active || blue
           ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-pointer overflow-hidden'
           : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-pointer leading-[14px] overflow-hidden'}
+      data-mine={mine}
       style={{ left: pos.x, top: pos.y, zIndex: active ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue || active ? 260 : 150, x: '-50%', y: '-50%',
         boxShadow: selected && !editing ? '0 0 0 3px rgba(74,98,196,0.25), 0 6px 16px rgba(31,26,20,0.08)' : undefined }}
-      title={editing ? undefined : `${because} · click to rewrite`}
+      title={editing ? undefined : mine ? `${because} · click to rewrite` : `${users[authorId].name}’s words · click the step to branch from it`}
       onPointerDown={stop}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
-      onClick={(e) => { stop(e); if (editing) return; setSelected(true); setEditing(true) }}
+      onClick={(e) => { stop(e); if (editing) return; if (!mine) { selectStep(toStepId); return } setSelected(true); setEditing(true) }}
     >
       {!editing && (blue || active) && <Avatar userId={authorId} size={14} />}
       {editing ? (
         <motion.div initial={{ opacity: 0, scale: 0.78 }} animate={{ opacity: 1, scale: 1 }} transition={spring(mo.because)} style={{ transformOrigin: 'center' }} className="flex flex-col gap-2.5">
-          <span className="flex items-center gap-2 text-[12px] font-medium text-white/80"><Avatar userId={authorId} size={18} /> Because</span>
+          <span className="flex items-center gap-2 text-[12px] font-medium text-white/80"><Avatar userId={authorId} size={18} /> {authorId === 'you' ? DISPLAY_NAME : users[authorId].name}</span>
           <textarea
             ref={ref}
             value={val}
@@ -154,7 +158,7 @@ export function EdgesLayer({
           )}
         </g>,
       )
-      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} />)
+      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} toStepId={c.toStepId} />)
     } else {
       // blue curve from the bottom of yours to the spot on theirs
       const s = { x: a.x + a.w / 2, y: a.y + a.h }
@@ -170,7 +174,7 @@ export function EdgesLayer({
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
       )
-      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} />)
+      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} toStepId={c.toStepId} />)
     }
   }
 
