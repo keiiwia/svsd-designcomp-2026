@@ -5,6 +5,7 @@ import type {
 } from './types'
 import { useCanvasApi } from './canvas/CanvasContext'
 import { useSpots } from './canvas/spots'
+import { demoConnections, demoSteps } from './data/demoContent'
 import { frameRect, type Rect } from './lib/geometry'
 import {
   allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, nearbyLayout, trails as seedTrails,
@@ -161,9 +162,9 @@ const initialUI: UIState = {
 
 export function freshState() {
   const steps: Record<string, Step> = {}
-  for (const s of [...keiiwiaSteps, ...nearbySteps]) steps[s.id] = s
+  for (const s of [...keiiwiaSteps, ...nearbySteps, ...demoSteps]) steps[s.id] = s
   const connections: Record<string, Connection> = {}
-  for (const c of keiiwiaConnections) connections[c.id] = c
+  for (const c of [...keiiwiaConnections, ...demoConnections]) connections[c.id] = c
   const thoughts: Record<string, Thought> = {}
   for (const t of keiiwiaThoughts) thoughts[t.id] = t
   return {

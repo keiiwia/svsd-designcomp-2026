@@ -193,6 +193,10 @@ function Detail({ stepId }: { stepId: string }) {
             ))}
           </div>
 
+          {save.audio && (
+            <audio controls preload="none" src={save.audio} className="w-full h-9" style={{ maxWidth: Math.round(440 * aspect) }} />
+          )}
+
           {isVideo && (
             <div className="flex items-center gap-4 w-full">
               <button onClick={() => setPlaying((p) => !p)} className="w-10 h-10 rounded-full bg-ink text-white flex items-center justify-center">

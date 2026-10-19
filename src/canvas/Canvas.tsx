@@ -262,9 +262,20 @@ export function Canvas() {
     })
     // cross-media first: the rule is that a connection should change medium
     pool.sort((a, b) => Number(saves[a.saveId].medium === saves[from.saveId].medium) - Number(saves[b.saveId].medium === saves[from.saveId].medium))
-    // at most two from any one trail, so more voices show up
-    const perTrail: Record<string, number> = {}
-    const picked = pool.filter((st) => { perTrail[st.trailId] = (perTrail[st.trailId] ?? 0) + 1; return perTrail[st.trailId] <= 2 }).slice(0, 5)
+    // one from each trail first (so different voices show up), the order rotated by the card you
+    // branched from, so neighbouring cards surface different people
+    const byTrail = new Map<string, Step[]>()
+    for (const st of pool) byTrail.set(st.trailId, [...(byTrail.get(st.trailId) ?? []), st])
+    const trailIds = [...byTrail.keys()]
+    const seed = [...from.id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7)
+    const rotated = trailIds.length ? [...trailIds.slice(seed % trailIds.length), ...trailIds.slice(0, seed % trailIds.length)] : []
+    const picked: Step[] = []
+    for (let round = 0; picked.length < 5 && round < 2; round++) {
+      for (const id of rotated) {
+        const st = byTrail.get(id)?.[round]
+        if (st && picked.length < 5) picked.push(st)
+      }
+    }
     const w = 170, h = 96, gapX = 70
     const anchor = { x: r.x + r.w / 2, y: r.y + r.h / 2 }
     // two columns to the right of the card, spaced for the hover size (240 wide, taller with an image),

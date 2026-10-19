@@ -20,6 +20,7 @@ export interface Save {
   thought: string
   thumb?: string
   video?: string
+  audio?: string
   imageHeight?: number
   cardWidth?: number
   duration?: string

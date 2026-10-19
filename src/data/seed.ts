@@ -1,4 +1,5 @@
 import type { Connection, Save, Step, Thought, Trail, TrailNote, User } from '../types'
+import { demoSaves, demoTrails, demoUsers } from './demoContent'
 
 export const users: Record<string, User> = {
   you:     { id: 'you',     name: 'You',     initial: 'Y', color: '#c47a52', noteBg: '#ffe7d6' },
@@ -8,6 +9,7 @@ export const users: Record<string, User> = {
   jun:     { id: 'jun',     name: 'jun',     initial: 'J', color: '#9c86c2', noteBg: '#ece7fa' },
   kellysu: { id: 'kellysu', name: 'kellysu', initial: 'K', color: '#7fa89a', noteBg: '#e4f3da' },
   theo:    { id: 'theo',    name: 'theo',    initial: 'T', color: '#9c86c2', noteBg: '#ece7fa' },
+  ...demoUsers,
 }
 
 export const YOU = 'you'
@@ -53,7 +55,7 @@ export const nearbySaves: Save[] = [
 ]
 
 export const allSaves: Record<string, Save> = Object.fromEntries(
-  [...yourSaves, ...keiiwiaSaves, ...nearbySaves].map((s) => [s.id, s]),
+  [...yourSaves, ...keiiwiaSaves, ...nearbySaves, ...demoSaves].map((s) => [s.id, s]),
 )
 
 export const OWN_TRAIL = 't-you'
@@ -72,6 +74,7 @@ export const trails: Record<string, Trail> = {
   't-jun': { id: 't-jun', title: 'Empty rooms', ownerId: 'jun', origin: { x: 0, y: 0 } },
   't-theo': { id: 't-theo', title: 'Things she said', ownerId: 'theo', origin: { x: 0, y: 0 } },
   't-lena': { id: 't-lena', title: 'One colour', ownerId: 'lena', origin: { x: 0, y: 0 } },
+  ...demoTrails,
 }
 
 // Positions are relative to the trail origin
