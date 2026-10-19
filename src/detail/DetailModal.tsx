@@ -281,7 +281,7 @@ function Detail({ stepId }: { stepId: string }) {
           </div>
           {trail.ownerId !== 'you' && !linkedToOwn && (
             <button onClick={() => makeConnectionFrom(stepId)} className="w-fit flex items-center gap-2 bg-ink text-white rounded-full pl-[18px] pr-5 py-3 text-[14px] font-medium hover:bg-black">
-              <Icon name="connect" size={14} /> Make a connection
+              <Icon name="connect" size={14} /> Link
             </button>
           )}
           {trail.ownerId !== 'you' && linkedToOwn && (
@@ -300,7 +300,7 @@ function Detail({ stepId }: { stepId: string }) {
                   <span className="h-[9px] rounded bg-line-strong" style={{ width: [187, 143, 165][i % 3] }} />
                 </div>
               ))}
-              <p className="text-[12px] text-ink-3">Make a connection to {her} step and the thoughts open up.</p>
+              <p className="text-[12px] text-ink-3">Link to {her} step and the thoughts open up.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">

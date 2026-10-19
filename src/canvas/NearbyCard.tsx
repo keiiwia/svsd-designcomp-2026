@@ -15,7 +15,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepI
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
   const fromOwn = useStore((s) => (fromStepId ? s.trails[s.steps[fromStepId]?.trailId ?? '']?.ownerId === 'you' : false))
   const connect = () => {
-    makeConnectionFrom(step.id)
+    makeConnectionFrom(step.id, pos)
     if (fromStepId && fromOwn) {
       // the suggestion came from one of your cards: go straight to writing the because
       const from = fromStepId
@@ -71,7 +71,7 @@ export function NearbyCard({ step, save, trail, pos, order = 0, quick, fromStepI
           <div className="flex gap-2">
             <button onClick={(e) => { e.stopPropagation(); connect() }}
               className="flex items-center gap-1.5 bg-ink text-white rounded-full px-3 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap">
-              <Icon name="connect" size={11} /> Make a connection
+              <Icon name="connect" size={11} /> Link
             </button>
             <button onClick={(e) => { e.stopPropagation(); openDetail(step.id) }} className="text-[11px] text-ink-2 px-2 hover:text-ink">Open</button>
           </div>

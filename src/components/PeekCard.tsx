@@ -34,7 +34,7 @@ export function PeekCard({ step, onConnect, className }: { step: Step; onConnect
         {nThoughts > 0 && <span className="ml-auto flex items-center gap-1"><Icon name="thought" size={10} /> {nThoughts}</span>}
       </p>
       <div className="flex items-center gap-1.5">
-        <button onClick={onConnect} className="flex items-center gap-1.5 bg-ink text-white rounded-full px-2.5 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap"><Icon name="connect" size={11} /> Make a connection</button>
+        <button onClick={onConnect} className="flex items-center gap-1.5 bg-ink text-white rounded-full px-2.5 py-1.5 text-[11px] font-medium hover:bg-black whitespace-nowrap"><Icon name="connect" size={11} /> Link</button>
       </div>
     </motion.div>
   )

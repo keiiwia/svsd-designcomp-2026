@@ -142,7 +142,7 @@ function Walk({ snapshot }: { snapshot: WalkState }) {
                       </button>
                       <div className="flex items-center gap-1 pt-1">
                         {!own && (
-                          <button onClick={() => leaveTo(() => makeConnectionFrom(step.id))} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap"><Icon name="connect" size={11} /> Make a connection</button>
+                          <button onClick={() => leaveTo(() => makeConnectionFrom(step.id))} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap"><Icon name="connect" size={11} /> Link</button>
                         )}
                         <button onClick={() => leaveTo(() => { if (!own) setBranchState(trail.id, 'expanded'); branchFromStep(step.id) })} className="flex items-center gap-1.5 text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap"><Icon name="branch" size={11} /> Branch from here</button>
                         {walk.index > 1 && <button onClick={prev} className="text-[12px] text-ink-2 hover:text-ink px-2 py-1 whitespace-nowrap">← Back</button>}

@@ -4,10 +4,27 @@ import type {
   Anchor, BecauseDraft, BranchState, Connection, Save, SidebarMode, Size, Stance, Step, Thought, Tool, Trail, TrailNote,
 } from './types'
 import { useCanvasApi } from './canvas/CanvasContext'
+import { frameRect, type Rect } from './lib/geometry'
 import {
-  allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, trails as seedTrails,
+  allSaves, keiiwiaConnections, keiiwiaSteps, keiiwiaThoughts, nearbySteps, nearbyLayout, trails as seedTrails,
   KEIIWIA_REPLY, KEIIWIA_TRAIL, OWN_TRAIL, YOU,
 } from './data/seed'
+
+// your frame's rectangle, the way the canvas draws it
+function ownRect(s: Pick<TrailsState, 'trails' | 'steps' | 'saves' | 'thoughts'>): Rect {
+  const own = s.trails[OWN_TRAIL]
+  const ownSteps = Object.values(s.steps).filter((st) => st.trailId === OWN_TRAIL)
+  const notes = Object.values(s.thoughts).filter((t) => t.onCanvas && !t.pulled && s.steps[t.stepId]?.trailId === OWN_TRAIL)
+  return frameRect(own, ownSteps, s.saves, notes, useSizes.getState().sizes)
+}
+
+// where the nearby card for this step sits on the canvas (mirrors the layout in Canvas.tsx)
+function nearbySpot(s: Pick<TrailsState, 'trails' | 'steps' | 'saves' | 'thoughts'>, stepId: string) {
+  const lay = nearbyLayout[stepId]
+  if (!lay) return null
+  const r = ownRect(s)
+  return lay.anchor === 'bottom' ? { x: r.x + lay.dx, y: r.y + r.h + lay.dy } : { x: r.x + r.w + lay.dx, y: r.y + lay.dy }
+}
 
 export interface Camera { x: number; y: number; scale: number }
 
@@ -65,7 +82,7 @@ export interface TrailsState {
   commitDraft: () => void
   openDetail: (stepId: string | null) => void
   setPeek: (stepId: string | null) => void
-  makeConnectionFrom: (stepId: string) => void
+  makeConnectionFrom: (stepId: string, at?: { x: number; y: number }) => void
   setBranchState: (trailId: string, s: BranchState) => void
   setSidebar: (m: SidebarMode) => void
   addThought: (stepId: string, text: string, t?: number, stance?: Stance, parentId?: string) => void
@@ -243,20 +260,55 @@ export const useStore = create<TrailsState>()(
       openDetail: (stepId) => set((s) => ({ ui: { ...s.ui, detailStepId: stepId, peekStepId: null } })),
       setPeek: (stepId) => set((s) => ({ ui: { ...s.ui, peekStepId: stepId } })),
 
-      makeConnectionFrom: (stepId) => {
+      makeConnectionFrom: (stepId, at) => {
         const s = get()
         const step = s.steps[stepId]
+        const trail = s.trails[step.trailId]
         const bs = s.branchState[step.trailId]
+        const fresh = bs === 'hidden' || !bs
+        // their trail lands where you met it: the card you clicked, or the nearby card's spot
+        const spot = fresh ? at ?? nearbySpot(s, stepId) : null
+        let trails = s.trails
+        if (spot) {
+          const origin = { x: spot.x - step.pos.x, y: spot.y - step.pos.y }
+          // the ghost frame is taller than the little card was; keep it clear of your frame
+          const sizes = useSizes.getState().sizes
+          const ghost = frameRect({ ...trail, origin }, [step], s.saves, [], sizes)
+          ghost.h += 40
+          const mine = ownRect(s)
+          const gap = 24
+          const overlaps = ghost.x < mine.x + mine.w + gap && ghost.x + ghost.w > mine.x - gap && ghost.y < mine.y + mine.h + gap && ghost.y + ghost.h > mine.y - gap
+          if (overlaps) {
+            const up = ghost.y + ghost.h + gap - mine.y, down = mine.y + mine.h + gap - ghost.y
+            const sideways = spot.x > mine.x + mine.w - 20 || spot.x + ghost.w < mine.x + 20
+            if (!sideways) origin.y += up < down ? -up : down
+          }
+          trails = { ...s.trails, [trail.id]: { ...trail, origin } }
+        }
         set({
-          branchState: { ...s.branchState, [step.trailId]: bs === 'hidden' || !bs ? 'ghost' : bs },
+          trails,
+          branchState: { ...s.branchState, [step.trailId]: fresh ? 'ghost' : bs },
           ui: { ...s.ui, detailStepId: null, connectHintStepId: stepId, sidebar: { kind: 'saves' } },
         })
-        // bring her step and your trail into the same view
-        requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
+        // only when it landed somewhere we could not anchor (from the detail view) do we move the camera
+        if (!spot) requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
       },
 
       setBranchState: (trailId, st) => {
-        set((s) => ({ branchState: { ...s.branchState, [trailId]: st } }))
+        set((s) => {
+          let trails = s.trails
+          if (st === 'expanded' && trailId !== OWN_TRAIL) {
+            // a branch that opens on top of your frame slides down below it
+            const t = s.trails[trailId]
+            const sizes = useSizes.getState().sizes
+            const theirs = frameRect(t, Object.values(s.steps).filter((x) => x.trailId === trailId), s.saves, [], sizes)
+            const mine = ownRect(s)
+            const gap = 40
+            const overlaps = theirs.x < mine.x + mine.w + gap && theirs.x + theirs.w > mine.x - gap && theirs.y < mine.y + mine.h + gap && theirs.y + theirs.h > mine.y - gap
+            if (overlaps) trails = { ...s.trails, [trailId]: { ...t, origin: { x: t.origin.x, y: t.origin.y + (mine.y + mine.h + 110 - theirs.y) } } }
+          }
+          return { trails, branchState: { ...s.branchState, [trailId]: st } }
+        })
         if (st === 'expanded') requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
       },
       setSidebar: (sidebar) => set((s) => ({ ui: { ...s.ui, sidebar } })),
