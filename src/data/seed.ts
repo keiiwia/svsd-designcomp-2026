@@ -108,7 +108,7 @@ export const keiiwiaThoughts: Thought[] = [
     onCanvas: { x: 780, y: 280 } },
   { id: 'th3', stepId: 'k2', authorId: 'lena', parentId: 'th2', text: 'Maybe she’s the only thing moving on purpose.' },
   { id: 'th4', stepId: 'k2', authorId: 'jun', stance: 'wonders', text: 'Is the camera the still one? Nobody seems to be holding it.', t: 88 },
-  { id: 'th5', stepId: 'k2', authorId: 'kellysu', text: 'jun’s right — I left it on a tripod and walked into the shot.', t: 88, parentId: 'th4' },
+  { id: 'th5', stepId: 'k2', authorId: 'keiiwia', text: 'jun’s right — I left it on a tripod and walked into the shot.', t: 88, parentId: 'th4' },
 ]
 
 // What keiiwia says after you link to her still

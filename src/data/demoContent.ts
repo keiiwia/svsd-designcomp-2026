@@ -1,4 +1,4 @@
-import type { Connection, Save, Step, Trail, User } from '../types'
+import type { Connection, Save, Step, Thought, Trail, User } from '../types'
 
 /**
  * Demo trails from three more people, so suggestions and branches have something to draw on.
@@ -109,4 +109,77 @@ export const demoConnections: Connection[] = [
     'If people can feel understood by something that doesn’t truly understand them, then the interface itself might be shaping their trust. I started thinking about tiny feedback animations.',
     'That line becomes more important when the product isn’t a tool but something people talk to every day. I went looking at stories about AI companions.',
   ]),
+]
+
+// ---------------------------------------------------------------------------
+// Discussion on the demo trails (and a little more on keiiwia's), so every step has people in it.
+// Replies point at parentId; t is seconds into a clip for timed thoughts.
+type T = { id: string; stepId: string; authorId: string; text: string; stance?: Thought['stance']; t?: number; parentId?: string }
+const th = (id: string, stepId: string, authorId: string, text: string, extra: Partial<T> = {}): Thought => ({ id, stepId, authorId, text, ...extra })
+
+export const demoThoughts: Thought[] = [
+  // ---- Maya: nostalgia
+  th('mth1', 't-maya-1', 'lena', 'I bought one of these last year. The thing I didn’t expect: I take fewer photos, and I look at them more.', { stance: 'built on it' }),
+  th('mth2', 't-maya-1', 'jun', 'Is it the camera, or the fact that you can’t post from it without a few extra steps? The friction might be doing the work.', { stance: 'wonders' }),
+  th('mth3', 't-maya-1', 'maya', 'That’s probably it. The three days between shooting and seeing them are the part I’d keep.', { parentId: 'mth2' }),
+  th('mth4', 't-maya-2', 'kellysu', 'Same. My archive folder is more honest than my grid.', { stance: 'agrees' }),
+  th('mth5', 't-maya-2', 'theo', 'I don’t think curating is the problem. A portfolio is a kind of honesty too: it’s choosing who you’re trying to become.', { stance: 'disagrees' }),
+  th('mth6', 't-maya-2', 'maya', 'Fair. Maybe what bothers me is that the choosing happens so fast, before I know what I think.', { parentId: 'mth5' }),
+  th('mth7', 't-maya-3', 'priya', 'If memory is reconstructed every time, does writing the thought down freeze it in a way that’s actually less true?', { stance: 'wonders' }),
+  th('mth8', 't-maya-3', 'jordan', 'Or it gives you a second version to compare against. Two reconstructions are more honest than one.', { parentId: 'mth7' }),
+  th('mth9', 't-maya-4', 'kellysu', 'The hiss at the start is the whole point. Someone pressed record on this.', { t: 18 }),
+  th('mth10', 't-maya-4', 'mira', 'The handwriting on the disc did more work than the tracklist. You knew who it was from before you heard a note.', { stance: 'built on it', t: 64 }),
+  th('mth11', 't-maya-4', 'jordan', 'Playlists are shared with everyone at once. A CD was for one person. I think that’s the difference you’re circling.', { stance: 'wonders', t: 102 }),
+  th('mth12', 't-maya-5', 'lena', 'A screenshot of a conversation is the most honest artifact I own, and it lives in a folder called “misc”.', { stance: 'agrees' }),
+  th('mth13', 't-maya-5', 'theo', 'Does it stop being a scrapbook the moment someone else can see it?', { stance: 'wonders' }),
+  th('mth14', 't-maya-5', 'maya', 'I think it stays one as long as nothing in it was made to be seen.', { parentId: 'mth13' }),
+  th('mth15', 't-maya-6', 'keiiwia', 'This is close to what I’m doing with the leaving pictures. The pictures weren’t the point. The sentence under each one was.', { stance: 'built on it' }),
+  th('mth16', 't-maya-6', 'priya', 'The unfinished part matters. A finished thought is a post. An unfinished one is still yours.', { stance: 'agrees' }),
+
+  // ---- Jordan: the sound of a city
+  th('jth1', 't-jordan-1', 'kellysu', 'The pigeons. I’d never have kept the pigeons, and now they’re my favourite part.', { t: 22 }),
+  th('jth2', 't-jordan-1', 'mira', 'Who decided the traffic is background and the voices are foreground? You’re already mixing when you listen.', { stance: 'wonders', t: 95 }),
+  th('jth3', 't-jordan-1', 'jordan', 'Exactly the question. I caught myself turning down the bus and had to ask why.', { parentId: 'jth2', t: 95 }),
+  th('jth4', 't-jordan-2', 'theo', 'Not sure “neutral” was ever on the table. Every square was built for someone. The question is who it was built against.', { stance: 'disagrees' }),
+  th('jth5', 't-jordan-2', 'jordan', 'Agreed, and that’s a sharper way to say it. “Built against” is going in my notes.', { parentId: 'jth4' }),
+  th('jth6', 't-jordan-2', 'priya', 'Do the rules change the people, or do the people change and the rules catch up?', { stance: 'wonders' }),
+  th('jth7', 't-jordan-3', 'maya', 'The venue I grew up with is a gym now. Nobody filmed the last show. That’s the part that gets me.', { stance: 'agrees' }),
+  th('jth8', 't-jordan-3', 'lena', 'What’s left is usually a flyer someone kept. Paper outlives the room.', { stance: 'built on it' }),
+  th('jth9', 't-jordan-3', 'kellysu', 'Half my friends met in a basement that fits forty people. You can’t start a scene in a stadium.'),
+  th('jth10', 't-jordan-4', 'maya', 'This is the burned-CD thing from my trail, seen from the other side: the mistake on the tape is the proof a person made it.', { stance: 'built on it' }),
+  th('jth11', 't-jordan-4', 'jun', 'Does an official archive have to lose that? Or does it just need to keep the handwriting?', { stance: 'wonders' }),
+  th('jth12', 't-jordan-4', 'jordan', 'Keep the handwriting. Keep the bad recording. Index it, don’t clean it.', { parentId: 'jth11' }),
+  th('jth13', 't-jordan-5', 'theo', 'Three conflicting stories is the accurate version. Agreement is usually just the loudest person.', { stance: 'agrees' }),
+  th('jth14', 't-jordan-5', 'mira', 'How do you ask without steering? People tell you the story they think you want.', { stance: 'wonders' }),
+  th('jth15', 't-jordan-6', 'priya', 'This is where the “what did you just think?” prompt belongs. Not after the fact. At the corner, while it’s still loud.', { stance: 'built on it' }),
+  th('jth16', 't-jordan-6', 'keiiwia', 'Would the map change what you hear when you walk without it?', { stance: 'wonders' }),
+  th('jth17', 't-jordan-6', 'jordan', 'Probably. I’d be fine with that. I already walk differently since I started recording.', { parentId: 'jth16' }),
+
+  // ---- Priya: technology that feels human
+  th('pth1', 't-priya-1', 'jun', 'Two dots and a tilt. Everything else is our imagination filling in.', { stance: 'agrees' }),
+  th('pth2', 't-priya-1', 'mira', 'I don’t think it’s approachable, I think it’s safe. A face that simple can’t judge you back.', { stance: 'disagrees' }),
+  th('pth3', 't-priya-1', 'priya', 'That’s a better word for it. Safe. The realistic ones feel like they’re watching.', { parentId: 'pth2' }),
+  th('pth4', 't-priya-2', 'theo', 'Weizenbaum was alarmed by exactly this. He built it, then spent years warning people about it.'),
+  th('pth5', 't-priya-2', 'maya', 'If being heard matters more than being understood, what does that say about how we listen to each other?', { stance: 'wonders' }),
+  th('pth6', 't-priya-2', 'lena', 'That most of us are waiting to talk.', { parentId: 'pth5' }),
+  th('pth7', 't-priya-3', 'kellysu', 'The little bounce when the feed catches. It’s apologising for making you wait.', { t: 2 }),
+  th('pth8', 't-priya-3', 'jun', 'At what point does “considerate” become a performance of care? The app doesn’t care. The animator did.', { stance: 'wonders', t: 5 }),
+  th('pth9', 't-priya-3', 'priya', 'Maybe that’s the honest version: the animation is the designer’s care, delivered late.', { parentId: 'pth8', t: 5 }),
+  th('pth10', 't-priya-4', 'jordan', 'Dismissing it is easy from outside loneliness. The design question is real, though.', { stance: 'agrees' }),
+  th('pth11', 't-priya-4', 'mira', 'Could an app be built to make itself less needed over time? Has anyone tried?', { stance: 'wonders' }),
+  th('pth12', 't-priya-4', 'priya', 'That’s the version I’d want to design. Success looks like someone closing it.', { parentId: 'pth11' }),
+
+  // ---- more voices on keiiwia's "People leaving"
+  th('kth1', 'k1', 'maya', 'Is the empty horizon the point, or is it what the person who left is looking at?', { stance: 'wonders' }),
+  th('kth2', 'k1', 'lena', 'The emptiness only reads as leaving because of what comes next. On its own it’s just a beach.', { stance: 'agrees' }),
+  th('kth3', 'k3', 'jordan', 'A log is the original field recording. Same weather, never written the same.', { stance: 'built on it' }),
+  th('kth4', 'k3', 'theo', 'Is it leaving if you write it down every day and stay?', { stance: 'wonders' }),
+  th('kth5', 'k4', 'priya', 'A sound designed for when seeing fails. That’s the whole trail in one object.'),
+  th('kth6', 'k4', 'kellysu', 'I have a recording of one from the ferry. Want it for the trail?', { stance: 'built on it' }),
+
+  // ---- the one-step trails nearby
+  th('nth1', 'n1', 'maya', 'Found this through your trail. It does what the burned CD did: makes the room somewhere else.', { stance: 'agrees' }),
+  th('nth2', 'n2', 'lena', 'The wear is the story. A new hem has nothing to say.', { stance: 'built on it' }),
+  th('nth3', 'n4', 'mira', 'A list of what she wouldn’t wear tells you more than a photo of what she did.', { stance: 'agrees' }),
+  th('nth4', 'n5', 'keiiwia', 'One colour and the rest grey. Same trick as the dunes.', { stance: 'built on it' }),
 ]
