@@ -10,6 +10,7 @@ export type DragKind =
   | { kind: 'step'; stepId: string; offset: Pt; moved: boolean }
   | { kind: 'note'; noteId: string; startClient: Pt; members: { id: string; start: Pt }[]; moved: boolean }
   | { kind: 'pan'; start: Pt; camStart: Pt }
+  | { kind: 'frame'; trailId: string; startClient: Pt; startOrigin: Pt }
 
 interface DragState { drag: DragKind; set: (d: DragKind) => void }
 export const useDrag = create<DragState>((set) => ({ drag: { kind: 'none' }, set: (drag) => set({ drag }) }))

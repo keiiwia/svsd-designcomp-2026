@@ -26,7 +26,7 @@ export function loadScene(n: number) {
 
   // 02 place references
   const vase = place('s-vase', 24, 56)
-  const skirt = place('s-skirt', 360, 44)
+  const skirt = place('s-skirt', 400, 44)
   s().selectStep(null)
   if (n === 2) { recenter(); return }
 
@@ -43,10 +43,10 @@ export function loadScene(n: number) {
   if (n === 6) { recenter(); return }
 
   // 07 linked: her trail joins your canvas
-  const folded = place('s-folded', 700, 56)
+  const folded = place('s-folded', 800, 56)
   link(skirt, folded, 'same kind of folds')
   s().addNote(OWN_TRAIL, { x: 40, y: 290 }, 'The people are tiny and the trees are huge.')
-  s().addNote(OWN_TRAIL, { x: 716, y: 300 }, 'Looks soft, but it would cut you.')
+  s().addNote(OWN_TRAIL, { x: 816, y: 300 }, 'Looks soft, but it would cut you.')
   link(skirt, 'k2', 'the red is the only thing moving — everything around it is muted and still.', { x: 0.62, y: 0.42 })
   s().setBranchState(KEIIWIA_TRAIL, 'collapsed')
   if (n === 7) { fit(); return }

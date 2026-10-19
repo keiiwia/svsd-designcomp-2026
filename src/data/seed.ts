@@ -65,7 +65,7 @@ export const trails: Record<string, Trail> = {
     id: KEIIWIA_TRAIL, title: 'People leaving', ownerId: 'keiiwia',
     description: '“I keep saving pictures of people leaving. This is where I’m trying to work out why.”',
     branchedFrom: { trailTitle: 'Empty rooms', ownerId: 'jun', stepIndex: 3 },
-    origin: { x: 160, y: 720 },
+    origin: { x: 160, y: 820 },
   },
   't-kellysu': { id: 't-kellysu', title: 'Songs for empty rooms', ownerId: 'kellysu', origin: { x: 0, y: 0 } },
   't-mira': { id: 't-mira', title: 'Clothes that carry stories', ownerId: 'mira', origin: { x: 0, y: 0 } },
@@ -77,9 +77,9 @@ export const trails: Record<string, Trail> = {
 // Positions are relative to the trail origin
 export const keiiwiaSteps: Step[] = [
   { id: 'k1', trailId: KEIIWIA_TRAIL, saveId: 'k-poster', index: 1, pos: { x: 24, y: 120 } },
-  { id: 'k2', trailId: KEIIWIA_TRAIL, saveId: 'k-dunes', index: 2, pos: { x: 230, y: 40 } },
-  { id: 'k3', trailId: KEIIWIA_TRAIL, saveId: 'k-log', index: 3, pos: { x: 620, y: 112 } },
-  { id: 'k4', trailId: KEIIWIA_TRAIL, saveId: 'k-fog', index: 4, pos: { x: 880, y: 118 } },
+  { id: 'k2', trailId: KEIIWIA_TRAIL, saveId: 'k-dunes', index: 2, pos: { x: 320, y: 40 } },
+  { id: 'k3', trailId: KEIIWIA_TRAIL, saveId: 'k-log', index: 3, pos: { x: 770, y: 112 } },
+  { id: 'k4', trailId: KEIIWIA_TRAIL, saveId: 'k-fog', index: 4, pos: { x: 1100, y: 118 } },
 ]
 
 export const nearbySteps: Step[] = [
@@ -102,7 +102,7 @@ export const KEIIWIA_BECAUSE =
 export const keiiwiaThoughts: Thought[] = [
   { id: 'th1', stepId: 'k2', authorId: 'keiiwia', text: 'She never once looks back at the camera.', t: 12 },
   { id: 'th2', stepId: 'k2', authorId: 'mira', stance: 'disagrees', text: 'I don’t think it’s still though — the grass is moving the whole time.', t: 41,
-    onCanvas: { x: 620, y: 230 } },
+    onCanvas: { x: 780, y: 240 } },
   { id: 'th3', stepId: 'k2', authorId: 'lena', parentId: 'th2', text: 'Maybe she’s the only thing moving on purpose.' },
   { id: 'th4', stepId: 'k2', authorId: 'jun', stance: 'wonders', text: 'Is the camera the still one? Nobody seems to be holding it.', t: 88 },
   { id: 'th5', stepId: 'k2', authorId: 'kellysu', text: 'jun’s right — I left it on a tripod and walked into the shot.', t: 88, parentId: 'th4' },
@@ -119,12 +119,12 @@ export const whoBranched = [
 
 // Nearby card placement, relative to your frame's right edge / top
 export const nearbyLayout: Record<string, { dx: number; dy: number; anchor: 'right' | 'top' | 'bottom' }> = {
-  k2: { dx: -150, dy: -126, anchor: 'top' },
-  n1: { dx: 70, dy: -78, anchor: 'top' },
-  n2: { dx: 48, dy: 70, anchor: 'right' },
-  n3: { dx: 30, dy: 200, anchor: 'right' },
-  n5: { dx: 60, dy: 330, anchor: 'right' },
-  n4: { dx: 60, dy: 28, anchor: 'bottom' },
+  k2: { dx: -160, dy: -150, anchor: 'top' },
+  n1: { dx: 90, dy: -96, anchor: 'top' },
+  n2: { dx: 70, dy: 70, anchor: 'right' },
+  n3: { dx: 50, dy: 215, anchor: 'right' },
+  n5: { dx: 80, dy: 360, anchor: 'right' },
+  n4: { dx: 60, dy: 44, anchor: 'bottom' },
 }
 
 export const WELCOME = ['Welcome back, Adam.', 'Got a new idea to rabbit hole through?']

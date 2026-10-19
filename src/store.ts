@@ -72,6 +72,7 @@ export interface TrailsState {
   fanOutStack: (stackId: string) => void
   restack: (fanOf: string) => void
   moveNotes: (moves: { id: string; pos: { x: number; y: number } }[]) => void
+  moveTrail: (trailId: string, origin: { x: number; y: number }) => void
   updateTrailNote: (trailId: string, patch: Partial<TrailNote>) => void
   toggleNoteItem: (trailId: string, itemId: string) => void
   addNoteItem: (trailId: string, text: string) => void
@@ -303,6 +304,8 @@ export const useStore = create<TrailsState>()(
         members.forEach((t, i) => { next[t.id] = { ...t, fanOf: undefined, stackId: fanOf, onCanvas: { x: base.x + i * 5, y: base.y + i * 5 } } })
         set({ thoughts: next })
       },
+      // steps and notes are stored relative to the trail, so moving the origin moves the whole section
+      moveTrail: (trailId, origin) => set((s) => (s.trails[trailId] ? { trails: { ...s.trails, [trailId]: { ...s.trails[trailId], origin } } } : {})),
       moveNotes: (moves) =>
         set((s) => {
           const next = { ...s.thoughts }
@@ -357,7 +360,7 @@ export const useStore = create<TrailsState>()(
         const fromHeight = useSizes.getState().sizes[stepId]?.h ?? 230
         const newTrail: Trail = {
           id: trailId, title: 'Untitled trail', ownerId: YOU,
-          origin: { x: fromTrail.origin.x + from.pos.x - 24, y: fromTrail.origin.y + from.pos.y + fromHeight + 70 },
+          origin: { x: fromTrail.origin.x + from.pos.x - 24, y: fromTrail.origin.y + from.pos.y + fromHeight + 110 },
           branchedFrom: { trailTitle: fromTrail.title, ownerId: fromTrail.ownerId, stepIndex: from.index },
         }
         const stepId2 = `st${s.seq}`
@@ -435,7 +438,7 @@ export const useStore = create<TrailsState>()(
         const save: Save = { id, ownerId: YOU, medium: 'link', mediumLabel: 'Link', title: host, thought: '', url, cardWidth: 160, day: 'Today' }
         set({ saves: { ...s.saves, [id]: save }, seq: s.seq + 1 })
         const own = Object.values(get().steps).filter((st) => st.trailId === OWN_TRAIL)
-        const right = own.reduce((m, st) => Math.max(m, st.pos.x + 200), 24)
+        const right = own.reduce((m, st) => Math.max(m, st.pos.x + 240), 24)
         const o = get().trails[OWN_TRAIL].origin
         get().placeSave(id, { x: o.x + right, y: o.y + 60 })
       },
@@ -446,7 +449,7 @@ export const useStore = create<TrailsState>()(
         const next = Object.values(s.saves).find((sv) => sv.ownerId === YOU && !s.placed.includes(sv.id) && sv.thumb)
         if (!next) return false
         const own = Object.values(s.steps).filter((st) => st.trailId === OWN_TRAIL)
-        const right = own.reduce((m, st) => Math.max(m, st.pos.x + 210), 24)
+        const right = own.reduce((m, st) => Math.max(m, st.pos.x + 250), 24)
         const o = s.trails[OWN_TRAIL].origin
         s.placeSave(next.id, { x: o.x + right, y: o.y + 56 })
         return true

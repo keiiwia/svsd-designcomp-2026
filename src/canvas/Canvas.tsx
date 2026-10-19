@@ -109,6 +109,9 @@ export function Canvas() {
       if (d.kind === 'none') return
       if (d.kind === 'pan') {
         setCamera({ ...st.camera, x: d.camStart.x + (e.clientX - d.start.x), y: d.camStart.y + (e.clientY - d.start.y) })
+      } else if (d.kind === 'frame') {
+        const scale = st.camera.scale
+        st.moveTrail(d.trailId, { x: d.startOrigin.x + (e.clientX - d.startClient.x) / scale, y: d.startOrigin.y + (e.clientY - d.startClient.y) / scale })
       } else if (d.kind === 'step') {
         const p = toCanvas({ x: e.clientX - d.offset.x, y: e.clientY - d.offset.y })
         const step = st.steps[d.stepId]

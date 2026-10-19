@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { motion } from 'motion/react'
 import { useStore } from '../store'
+import { useDrag } from './drag'
 import { Avatar, Icon } from '../components/ui'
 import type { Rect } from '../lib/geometry'
 import type { Trail } from '../types'
@@ -78,7 +79,17 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
             {!own && <span className="text-ink-4"> · {owner.name}’s branch</span>}
           </button>
         )}
-        {own && <Icon name="grip" size={13} className="text-ink-4" />}
+        <button
+          title="Drag to move this trail"
+          onPointerDown={(e) => {
+            if (e.button !== 0) return
+            e.stopPropagation()
+            useDrag.getState().set({ kind: 'frame', trailId: trail.id, startClient: { x: e.clientX, y: e.clientY }, startOrigin: { ...trail.origin } })
+          }}
+          className="cursor-grab active:cursor-grabbing text-ink-4 hover:text-ink-2 px-1 -mx-1"
+        >
+          <Icon name="grip" size={13} />
+        </button>
       </div>
 
       {/* expanded controls */}

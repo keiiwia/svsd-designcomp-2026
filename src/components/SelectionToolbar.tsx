@@ -54,7 +54,7 @@ export function SelectionToolbar({ step, trail }: { step: Step; trail: Trail }) 
   const owner = users[trail.ownerId]
 
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)]" style={{ zIndex: 45 }} onPointerDown={(e) => e.stopPropagation()}>
+    <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+18px)]" style={{ zIndex: 45 }} onPointerDown={(e) => e.stopPropagation()}>
       <motion.div
         initial={{ opacity: 0, y: 6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.16 }}
         className="flex items-center gap-1 rounded-[16px] px-2 py-[7px] border border-line"

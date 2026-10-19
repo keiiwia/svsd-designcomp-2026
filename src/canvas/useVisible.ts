@@ -42,7 +42,7 @@ export function useVisible() {
       const bs = branchState[trail.id] ?? 'hidden'
       if (bs === 'hidden') continue
       if (bs === 'expanded') {
-        const rect = frameRect(trail, tSteps, saves, notesHere, sizes, 940)
+        const rect = frameRect(trail, tSteps, saves, notesHere, sizes, 1280)
         frames.push({ trail, rect, state: 'expanded', steps: tSteps })
         visibleSteps.push(...tSteps)
       } else {

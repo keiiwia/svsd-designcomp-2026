@@ -154,7 +154,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       )}
       {own && !ghost && (
         <>
-          {(['right', 'bottom'] as const).map((side) => (
+          {(['right', 'bottom', 'left', 'top'] as const).map((side) => (
             <button
               key={side}
               data-port
@@ -162,7 +162,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
               title="Pull a line to another reference"
               className={clsx(
                 'absolute flex items-center justify-center w-6 h-6 cursor-crosshair group/port',
-                side === 'right' ? 'top-1/2 -right-3 -translate-y-1/2' : '-bottom-3 left-1/2 -translate-x-1/2',
+                side === 'right' ? 'top-1/2 -right-3 -translate-y-1/2' : side === 'left' ? 'top-1/2 -left-3 -translate-y-1/2' : side === 'top' ? '-top-3 left-1/2 -translate-x-1/2' : '-bottom-3 left-1/2 -translate-x-1/2',
                 'opacity-0 group-hover:opacity-100 transition-opacity',
                 (selected || inDraft || anyHint) && 'opacity-100',
               )}
