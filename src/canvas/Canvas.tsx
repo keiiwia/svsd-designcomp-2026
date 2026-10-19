@@ -342,12 +342,14 @@ export function Canvas() {
           })}
 
           {/* cards */}
-          {layers.reference && vis.frames.map((f) =>
-            f.steps.map((st, i) => (
-              <StepCard key={st.id} step={st} trail={f.trail} save={saves[st.saveId]} order={f.state === 'expanded' ? i : 0}
-                ghost={f.state === 'ghost'} stacked={f.state === 'collapsed' || f.state === 'ghost'} foreign={f.state !== 'own'} expanded={f.state === 'expanded'} />
-            )),
-          )}
+          <AnimatePresence>
+            {layers.reference && vis.frames.flatMap((f) =>
+              f.steps.map((st, i) => (
+                <StepCard key={st.id} step={st} trail={f.trail} save={saves[st.saveId]} order={f.state === 'expanded' ? i : 0}
+                  ghost={f.state === 'ghost'} stacked={f.state === 'collapsed' || f.state === 'ghost'} foreign={f.state !== 'own'} expanded={f.state === 'expanded'} />
+              )),
+            )}
+          </AnimatePresence>
 
           {/* nearby references from everyone */}
           {nearby.map((n, i) => {

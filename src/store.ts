@@ -18,6 +18,22 @@ function ownRect(s: Pick<TrailsState, 'trails' | 'steps' | 'saves' | 'thoughts'>
   return frameRect(own, ownSteps, s.saves, notes, useSizes.getState().sizes)
 }
 
+// the rectangle a trail's frame occupies on the canvas right now (mirrors useVisible)
+function visibleRect(s: Pick<TrailsState, 'trails' | 'steps' | 'saves' | 'thoughts' | 'connections' | 'branchState'>, trailId: string, as?: BranchState): Rect | null {
+  const t = s.trails[trailId]
+  if (!t) return null
+  const sizes = useSizes.getState().sizes
+  const all = Object.values(s.steps).filter((st) => st.trailId === trailId)
+  const bs = as ?? (t.ownerId === 'you' ? 'expanded' : s.branchState[trailId] ?? 'hidden')
+  if (bs === 'hidden') return null
+  if (bs === 'expanded') {
+    const notes = Object.values(s.thoughts).filter((n) => n.onCanvas && !n.pulled && s.steps[n.stepId]?.trailId === trailId)
+    return frameRect(t, all, s.saves, notes, sizes)
+  }
+  const linked = all.filter((st) => Object.values(s.connections).some((c) => (c.fromStepId === st.id && s.steps[c.toStepId]?.trailId !== trailId) || (c.toStepId === st.id && s.steps[c.fromStepId]?.trailId !== trailId)))
+  return linked.length ? frameRect(t, linked, s.saves, [], sizes) : null
+}
+
 // where the nearby card for this step sits on the canvas (mirrors the layout in Canvas.tsx)
 function nearbySpot(s: Pick<TrailsState, 'trails' | 'steps' | 'saves' | 'thoughts'>, stepId: string) {
   const lay = nearbyLayout[stepId]
@@ -59,6 +75,8 @@ export interface TrailsState {
   branchState: Record<string, BranchState>
   unlocked: Record<string, boolean>
   nearbyVisible: boolean
+  // branches you have opened at least once: their button says Expand, not Add
+  expandedBefore: Record<string, boolean>
   pinned: Record<string, boolean>
   trailNotes: Record<string, TrailNote>
   ui: UIState
@@ -157,6 +175,7 @@ export function freshState() {
     branchState: { [KEIIWIA_TRAIL]: 'hidden' } as Record<string, BranchState>,
     unlocked: {} as Record<string, boolean>,
     nearbyVisible: false,
+    expandedBefore: {} as Record<string, boolean>,
     pinned: {} as Record<string, boolean>,
     trailNotes: {} as Record<string, TrailNote>,
     ui: { ...initialUI },
@@ -298,18 +317,29 @@ export const useStore = create<TrailsState>()(
         set((s) => {
           let trails = s.trails
           if (st === 'expanded' && trailId !== OWN_TRAIL) {
-            // a branch that opens on top of your frame slides down below it
+            // the branch opens where it is; it only shifts by the smallest amount that keeps
+            // every frame's heading reachable, so sections can still be picked up and moved
             const t = s.trails[trailId]
-            const sizes = useSizes.getState().sizes
-            const theirs = frameRect(t, Object.values(s.steps).filter((x) => x.trailId === trailId), s.saves, [], sizes)
-            const mine = ownRect(s)
-            const gap = 40
-            const overlaps = theirs.x < mine.x + mine.w + gap && theirs.x + theirs.w > mine.x - gap && theirs.y < mine.y + mine.h + gap && theirs.y + theirs.h > mine.y - gap
-            if (overlaps) trails = { ...s.trails, [trailId]: { ...t, origin: { x: t.origin.x, y: t.origin.y + (mine.y + mine.h + 110 - theirs.y) } } }
+            const theirs = visibleRect(s, trailId, 'expanded')
+            const gap = 32
+            let dy = 0
+            if (theirs) {
+              for (const other of Object.values(s.trails)) {
+                if (other.id === trailId) continue
+                const o = visibleRect(s, other.id)
+                if (!o) continue
+                const r = { ...theirs, y: theirs.y + dy }
+                const hit = r.x < o.x + o.w + gap && r.x + r.w > o.x - gap && r.y < o.y + o.h + gap && r.y + r.h > o.y - gap
+                if (!hit) continue
+                const up = r.y + r.h + gap - o.y, down = o.y + o.h + gap - r.y
+                dy += up < down ? -up : down
+              }
+            }
+            if (dy) trails = { ...s.trails, [trailId]: { ...t, origin: { x: t.origin.x, y: t.origin.y + dy } } }
           }
-          return { trails, branchState: { ...s.branchState, [trailId]: st } }
+          const expandedBefore = st === 'expanded' ? { ...s.expandedBefore, [trailId]: true } : s.expandedBefore
+          return { trails, branchState: { ...s.branchState, [trailId]: st }, expandedBefore }
         })
-        if (st === 'expanded') requestAnimationFrame(() => requestAnimationFrame(() => useCanvasApi.getState().api?.fitAll()))
       },
       setSidebar: (sidebar) => set((s) => ({ ui: { ...s.ui, sidebar } })),
 

@@ -39,6 +39,7 @@ Built and checked in the browser at 1440×1024:
 - Side panel toggle: one button in the top-right corner (same row as the file name and search) shows or hides the side panel and stays in the same place either way; the panel sits below it. Also fixed overlaps: because chips centre between card edges, mira's note and your first note sit clear of their cards.
 - Branch from here now fans other people's references out around the selected card (cross-media first, at most two per trail, dotted threads back to the card); hover one and Make a connection opens the because straight from your card. The trail title can also be renamed from the file panel top-left.
 - Link, in place: the Make a connection buttons now say Link, and linking from a nearby or suggested card drops that person's trail right where the card was (nudged clear of your frame) with no camera jump; a branch that would open on top of your frame slides below it when expanded.
+- Branches stay put: Add/Expand opens a branch where it sits (no camera jump; it only shifts by the smallest amount that keeps every frame's heading reachable), Collapse eases the frame down with the cards fading out, and once a branch has been opened its button says Expand instead of Add.
 - Not yet done: the real `dunes.mp4` clip (drop it in `public/video/dunes.mp4` and the detail view picks it up automatically), Walk mode is just the detail view, the mic button and the search bar are visual only.
 
 **To deploy:** the folder is a git repo now with one commit. Run these once (the remote add needs your approval):

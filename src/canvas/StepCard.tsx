@@ -106,6 +106,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
       ref={ref}
       initial={{ opacity: 0, scale: 0.94, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.94, y: 6, transition: { duration: 0.22, ease: 'easeIn' } }}
       transition={{ ...spring(mo.cardDrop), delay: order * mo.cardStagger }}
       data-step-id={step.id}
       data-connectable={ghost || own || foreign ? 'true' : 'false'}

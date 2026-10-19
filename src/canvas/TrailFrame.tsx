@@ -7,6 +7,7 @@ import { Avatar, Icon } from '../components/ui'
 import type { Rect } from '../lib/geometry'
 import type { Trail } from '../types'
 import { users } from '../data/seed'
+import { useMotion } from '../lib/motion'
 
 export function TrailFrame({ trail, rect, state, stepCount }: {
   trail: Trail; rect: Rect; state: 'own' | 'ghost' | 'collapsed' | 'expanded'; stepCount: number
@@ -23,6 +24,17 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
   const inputRef = useRef<HTMLInputElement>(null)
   const own = trail.ownerId === 'you'
   const owner = users[trail.ownerId]
+  const opened = useStore((s) => !!s.expandedBefore[trail.id])
+  const mo = useMotion()
+  // the frame eases between its collapsed and expanded size; while dragging or placing it follows instantly
+  const [easing, setEasing] = useState(false)
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) { first.current = false; return }
+    setEasing(true)
+    const t = window.setTimeout(() => setEasing(false), 700)
+    return () => window.clearTimeout(t)
+  }, [state])
 
   useEffect(() => { if (editing) { setVal(trail.title); setTimeout(() => inputRef.current?.select(), 0) } }, [editing, trail.title])
 
@@ -42,15 +54,21 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
 
   return (
     <motion.div
-      initial={own ? false : { opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      initial={own ? false : { opacity: 0, y: 14, left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+      animate={{ opacity: 1, y: 0, left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+      transition={{
+        opacity: { duration: 0.35, ease: 'easeOut' }, y: { duration: 0.35, ease: 'easeOut' },
+        left: easing ? { duration: mo.camera.duration * 0.7, ease: mo.camera.ease } : { duration: 0 },
+        top: easing ? { duration: mo.camera.duration * 0.7, ease: mo.camera.ease } : { duration: 0 },
+        width: easing ? { duration: mo.camera.duration * 0.7, ease: mo.camera.ease } : { duration: 0 },
+        height: easing ? { duration: mo.camera.duration * 0.7, ease: mo.camera.ease } : { duration: 0 },
+      }}
       className={clsx(
         'absolute rounded-[26px]',
         dashed ? 'border-[1.4px] border-dashed border-ink-4/70 bg-paper/40' : 'bg-frame',
         state === 'ghost' && 'opacity-80',
       )}
-      style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h, zIndex: 1 }}
+      style={{ zIndex: state === 'expanded' ? 2 : 1 }}
       onClick={onFrameClick}
       data-frame={trail.id}
     >
@@ -114,7 +132,7 @@ export function TrailFrame({ trail, rect, state, stepCount }: {
                 ? 'bg-paper text-ink-4 border border-line cursor-not-allowed'
                 : 'bg-ink text-white hover:bg-black hover:shadow-card')}
           >
-            <Icon name="plus" size={11} /> Add {owner.name}’s branch
+            {opened ? <><Icon name="expand" size={11} /> Expand</> : <><Icon name="plus" size={11} /> Add {owner.name}’s branch</>}
           </button>
           {state === 'ghost' && <span className="text-[10px] text-ink-3 whitespace-nowrap">Link one of yours to {owner.name === 'keiiwia' ? 'her' : 'their'} step first</span>}
         </div>
