@@ -34,6 +34,9 @@ import iconLink from '../assets/icons/link.svg'
 import iconImage from '../assets/icons/image.svg'
 import iconNoteMenu from '../assets/icons/note-menu.svg'
 import iconLockSmall from '../assets/icons/lock-small.svg'
+import iconExpand from '../assets/icons/expand.svg'
+import iconNoteEdit from '../assets/icons/note-edit.svg'
+import iconBranchMini from '../assets/icons/branch-mini.svg'
 
 const icons = {
   search: iconSearch, play: iconPlay, grip: iconGrip, chev: iconChev, phone: iconPhone, text: iconText,
@@ -43,6 +46,7 @@ const icons = {
   cursor: iconCursor, caret: iconCaret, note: iconNote, add: iconAdd, pin: iconPin,
   layerReference: iconLayerReference, layerYours: iconLayerYours, layerEveryone: iconLayerEveryone,
   slash: iconSlash, link: iconLink, image: iconImage, noteMenu: iconNoteMenu, lockSmall: iconLockSmall,
+  expand: iconExpand, noteEdit: iconNoteEdit, branchMini: iconBranchMini,
 }
 export type IconName = keyof typeof icons
 

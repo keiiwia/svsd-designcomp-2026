@@ -5,6 +5,7 @@ import { useStore, useSizes } from '../store'
 import { useDrag } from './drag'
 import { Icon } from '../components/ui'
 import { PeekCard } from '../components/PeekCard'
+import { SelectionToolbar } from '../components/SelectionToolbar'
 import { spring, useMotion } from '../lib/motion'
 import type { Save, Step, Trail } from '../types'
 import { stepAbs } from '../lib/geometry'
@@ -83,8 +84,6 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
     setDrag({ kind: 'connect', fromStepId: step.id, client: { x: e.clientX, y: e.clientY }, hoverStepId: null })
   }
 
-  const branchFromStep = useStore((s) => s.branchFromStep)
-  const addNote = useStore((s) => s.addNote)
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
   const [peek, setPeekLocal] = useState(false)
   const mo = useMotion()
@@ -147,15 +146,7 @@ export function StepCard({ step, trail, save, ghost, stacked, foreign, expanded,
             onConnect={() => { setPeekLocal(false); makeConnectionFrom(step.id) }} />
         )}
       </AnimatePresence>
-      {selected && !own && expanded && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)] flex items-center gap-1 bg-white border border-line rounded-[12px] shadow-card-lift p-1 whitespace-nowrap" style={{ zIndex: 45 }}
-          onPointerDown={(e) => e.stopPropagation()}>
-          <button onClick={(e) => { e.stopPropagation(); addNote(trail.id, { x: step.pos.x, y: step.pos.y + 150 }, ''); selectStep(null) }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink-2 hover:bg-paper"><Icon name="thought" size={12} /> Add a thought</button>
-          <button onClick={(e) => { e.stopPropagation(); branchFromStep(step.id) }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-[9px] text-[12px] font-medium text-ink bg-frame"><Icon name="branch" size={12} /> Branch from here</button>
-        </div>
-      )}
+      {selected && !ghost && (own || expanded) && <SelectionToolbar step={step} trail={trail} />}
       {hint && (
         <span className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 text-[11px] text-blue whitespace-nowrap bg-white/90 px-2 py-0.5 rounded-full border border-blue/30">
           draw from one of yours to here

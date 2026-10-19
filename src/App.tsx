@@ -5,6 +5,7 @@ import { Toolbar } from './panels/Toolbar'
 import { Sidebar } from './panels/Sidebar'
 import { DetailModal } from './detail/DetailModal'
 import { Shortcuts } from './panels/Shortcuts'
+import { IdeaModal } from './detail/IdeaModal'
 import { useHistory } from './lib/history'
 import { loadScene } from './scenes'
 import { useStore } from './store'
@@ -73,6 +74,7 @@ export default function App() {
       <Sidebar />
       <Toolbar />
       <DetailModal />
+      <IdeaModal />
       <Shortcuts open={help} onClose={() => setHelp(false)} />
       {tuner && MotionTuner && <Suspense fallback={null}><MotionTuner /></Suspense>}
       {Agentation && <Suspense fallback={null}><Agentation endpoint="http://localhost:4747" /></Suspense>}

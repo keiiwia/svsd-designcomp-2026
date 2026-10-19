@@ -7,7 +7,7 @@ import type { Tool } from '../types'
 
 /* ---------- tooltip ---------- */
 
-function Tip({ label, shortcut, show }: { label: string; shortcut?: string; show: boolean }) {
+export function Tip({ label, shortcut, show }: { label: string; shortcut?: string; show: boolean }) {
   return (
     <AnimatePresence>
       {show && (

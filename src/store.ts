@@ -26,6 +26,7 @@ export interface UIState {
   peekStepId: string | null
   walk: WalkState | null
   overview: boolean
+  idea: { mode: 'edit'; saveId: string } | { mode: 'create'; fromStepId: string } | null
 }
 
 export interface TrailsState {
@@ -83,6 +84,9 @@ export interface TrailsState {
   toggleLayer: (k: keyof Layers) => void
   togglePin: (stepId: string) => void
   removeStep: (stepId: string) => void
+  updateSave: (id: string, patch: Partial<Pick<Save, 'title' | 'thought' | 'url'>>) => void
+  openIdea: (idea: UIState['idea']) => void
+  addIdea: (title: string, thought: string) => string
   updateConnection: (id: string, because: string) => void
   addLink: (url: string) => void
   placeNextSave: () => boolean
@@ -105,6 +109,7 @@ const initialUI: UIState = {
   peekStepId: null,
   walk: null,
   overview: false,
+  idea: null,
 }
 
 export function freshState() {
@@ -362,6 +367,16 @@ export const useStore = create<TrailsState>()(
 
       toggleLayer: (k) => set((s) => ({ ui: { ...s.ui, layers: { ...s.ui.layers, [k]: !s.ui.layers[k] } } })),
       togglePin: (stepId) => set((s) => ({ pinned: { ...s.pinned, [stepId]: !s.pinned[stepId] } })),
+      updateSave: (id, patch) => set((s) => (s.saves[id] ? { saves: { ...s.saves, [id]: { ...s.saves[id], ...patch } } } : {})),
+      openIdea: (idea) => set((s) => ({ ui: { ...s.ui, idea } })),
+      // a written idea becomes a text reference of yours, ready to place or branch with
+      addIdea: (title, thought) => {
+        const s = get()
+        const id = `idea${s.seq}`
+        const save: Save = { id, ownerId: YOU, medium: 'text', mediumLabel: 'Idea', title: title || 'An idea', thought, cardWidth: 170, day: 'Today' }
+        set({ saves: { ...s.saves, [id]: save }, seq: s.seq + 1 })
+        return id
+      },
       // Let go of one of your own references: its connections and canvas notes go with it, the save returns to your phone
       removeStep: (stepId) =>
         set((s) => {
