@@ -121,9 +121,9 @@ export const whoBranched = [
 export const nearbyLayout: Record<string, { dx: number; dy: number; anchor: 'right' | 'top' | 'bottom' }> = {
   k2: { dx: -160, dy: -150, anchor: 'top' },
   n1: { dx: 90, dy: -96, anchor: 'top' },
-  n2: { dx: 70, dy: 70, anchor: 'right' },
-  n3: { dx: 50, dy: 215, anchor: 'right' },
-  n5: { dx: 80, dy: 360, anchor: 'right' },
+  n2: { dx: 70, dy: 165, anchor: 'right' },
+  n3: { dx: 50, dy: 306, anchor: 'right' },
+  n5: { dx: 80, dy: 447, anchor: 'right' },
   n4: { dx: 60, dy: 44, anchor: 'bottom' },
 }
 

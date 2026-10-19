@@ -9,6 +9,7 @@ import { NoteCard } from './NoteCard'
 import { TrailFrame } from './TrailFrame'
 import { NearbyCard } from './NearbyCard'
 import { useSpots } from './spots'
+import type { Step } from '../types'
 import { EdgesLayer } from './EdgesLayer'
 import { BecausePopover } from './BecausePopover'
 import { anchorPoint, estimateSize, stepRect, type Pt } from '../lib/geometry'
@@ -264,13 +265,17 @@ export function Canvas() {
     // at most two from any one trail, so more voices show up
     const perTrail: Record<string, number> = {}
     const picked = pool.filter((st) => { perTrail[st.trailId] = (perTrail[st.trailId] ?? 0) + 1; return perTrail[st.trailId] <= 2 }).slice(0, 5)
-    const w = 170, h = 96, gapX = 70, gapY = 118
+    const w = 170, h = 96, gapX = 70
     const anchor = { x: r.x + r.w / 2, y: r.y + r.h / 2 }
-    // a column to the right of the card, then a row beneath it (the left side usually holds the previous step)
+    // two columns to the right of the card, spaced for the hover size (240 wide, taller with an image),
+    // so no card ever lands on another even when it is open
+    const openH = (st: Step) => (saves[st.saveId].thumb ? 250 : 130)
+    const colX = [r.x + r.w + gapX, r.x + r.w + gapX + 264]
+    const colY = [r.y - 10, r.y + 30]
     return picked.map((st, i) => {
-      const pos = i < 3
-        ? { x: r.x + r.w + gapX, y: r.y - 10 + i * gapY }
-        : { x: r.x - 40 + (i - 3) * (w + 30), y: r.y + r.h + 70 }
+      const col = i % 2
+      const pos = { x: colX[col], y: colY[col] }
+      colY[col] += openH(st) + 16
       return { id: st.id, pos, w, h, from: anchor }
     })
   }, [suggestFor, steps, trails, saves, sizes, connections, branchState])
