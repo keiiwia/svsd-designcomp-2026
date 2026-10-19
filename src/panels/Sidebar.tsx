@@ -107,6 +107,19 @@ function SavesPanel() {
 function ThoughtItem({ t, depth = 0 }: { t: Thought; depth?: number }) {
   const u = users[t.authorId]
   const setDrag = useDrag((s) => s.set)
+  const updateThought = useStore((s) => s.updateThought)
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(t.text)
+  if (editing) {
+    return (
+      <div className={clsx('flex flex-col gap-1 -mx-1.5 px-1.5 py-1', depth > 0 && 'ml-3 pl-3 border-l border-line')}>
+        <textarea autoFocus value={val} onChange={(e) => setVal(e.target.value)} rows={2}
+          onBlur={() => { if (val.trim()) updateThought(t.id, val.trim()); setEditing(false) }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (val.trim()) updateThought(t.id, val.trim()); setEditing(false) } if (e.key === 'Escape') { setVal(t.text); setEditing(false) } }}
+          className="text-[13px] leading-[18px] text-ink bg-paper rounded-[8px] px-2 py-1 outline-none w-full resize-none" />
+      </div>
+    )
+  }
   return (
     <div
       className={clsx('flex flex-col gap-1 rounded-[8px] -mx-1.5 px-1.5 py-1 cursor-grab active:cursor-grabbing hover:bg-paper/70', depth > 0 && 'ml-3 pl-3 border-l border-line', t.onCanvas && 'opacity-60')}
@@ -120,7 +133,13 @@ function ThoughtItem({ t, depth = 0 }: { t: Thought; depth?: number }) {
         {t.t !== undefined && <span className="text-[10px] font-mono bg-paper rounded px-1 text-ink-2">{fmtTime(t.t)}</span>}
       </p>
       <p className="text-[13px] leading-[18px] text-ink">{t.text}</p>
-      <button className="text-[11px] text-ink-3 text-left hover:text-ink w-fit">Reply</button>
+      <span className="flex items-center gap-3">
+        <button className="text-[11px] text-ink-3 text-left hover:text-ink w-fit">Reply</button>
+        {t.authorId === 'you' && (
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setVal(t.text); setEditing(true) }}
+            className="flex items-center gap-1 text-[11px] text-ink-3 hover:text-ink"><Icon name="noteEdit" size={11} /> Edit</button>
+        )}
+      </span>
     </div>
   )
 }

@@ -56,6 +56,8 @@ export interface Connection {
   because: string
   attachments: string[]
   authorId: string
+  /** where you dragged the because chip, relative to the line's midpoint */
+  labelOffset?: { x: number; y: number }
 }
 
 export type Stance = 'built on it' | 'disagrees' | 'wonders' | 'agrees' | 'linked your skirt'

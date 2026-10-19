@@ -103,6 +103,7 @@ function Detail({ stepId }: { stepId: string }) {
   const makeConnectionFrom = useStore((s) => s.makeConnectionFrom)
   const openDetail = useStore((s) => s.openDetail)
   const addThought = useStore((s) => s.addThought)
+  const openIdea = useStore((s) => s.openIdea)
   const peek = useStore((s) => s.ui.peekStepId)
   const setPeek = useStore((s) => s.setPeek)
   const [val, setVal] = useState('')
@@ -114,7 +115,9 @@ function Detail({ stepId }: { stepId: string }) {
   // playhead: starts at her anchor (0:41) and runs while "playing"
   const [t, setT] = useState(41)
   const now = Math.round(t)
-  useEffect(() => { setT(41); setVal(''); setPlaying(true) }, [stepId])
+  useEffect(() => { setT(41); setVal(''); setPlaying(true); setAspect(isVideo ? 16 / 9 : 4 / 3) }, [stepId, isVideo])
+  // the media box follows the source's own proportions once it has loaded
+  const [aspect, setAspect] = useState(isVideo ? 16 / 9 : 4 / 3)
   useEffect(() => {
     if (!playing || !isVideo) return
     let last = performance.now()
@@ -168,12 +171,13 @@ function Detail({ stepId }: { stepId: string }) {
       >
         {/* media column */}
         <div className="flex-1 min-w-0 p-8 flex flex-col gap-5 overflow-y-auto">
-          <div className="relative w-full rounded-[18px] overflow-hidden bg-paper" style={{ aspectRatio: isVideo ? '16 / 9' : undefined, maxHeight: 440 }}>
+          <div className="relative rounded-[18px] overflow-hidden bg-paper mx-auto" style={{ aspectRatio: `${aspect}`, maxHeight: 440, width: '100%', maxWidth: `${Math.round(440 * aspect)}px` }}>
             {save.video ? (
-              <video src={save.video} poster={save.thumb} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+              <video src={save.video} poster={save.thumb} className="w-full h-full object-cover" autoPlay muted loop playsInline onLoadedMetadata={(e) => { const v = e.currentTarget; if (v.videoWidth) setAspect(v.videoWidth / v.videoHeight) }} />
             ) : save.thumb ? (
               <img src={save.thumb} alt="" className="w-full h-full object-cover"
-                style={{ maxHeight: 440, animation: isVideo ? `kenburns ${mo.kenBurns}s ease-in-out infinite alternate` : undefined, animationPlayState: playing ? 'running' : 'paused' }} />
+                onLoad={(e) => { const im = e.currentTarget; if (im.naturalWidth) setAspect(im.naturalWidth / im.naturalHeight) }}
+                style={{ animation: isVideo ? `kenburns ${mo.kenBurns}s ease-in-out infinite alternate` : undefined, animationPlayState: playing ? 'running' : 'paused' }} />
             ) : (
               <div className="w-full h-[300px] flex items-center justify-center text-ink-3 font-serif italic text-[26px] px-10 text-center">“{save.thought}”</div>
             )}
@@ -256,7 +260,7 @@ function Detail({ stepId }: { stepId: string }) {
         {/* because column */}
         <div className="w-[480px] shrink-0 border-l border-line px-10 py-9 flex flex-col gap-6 overflow-y-auto">
           <div className="flex items-center justify-between">
-            <p className="flex items-center gap-2 text-[14px]"><Avatar userId={trail.ownerId} size={24} /> <span className="font-medium">{trail.ownerId === 'you' ? 'You' : owner.name}</span> <span className="text-ink-3">because</span></p>
+            <p className="flex items-center gap-2 text-[14px]"><Avatar userId={trail.ownerId} size={24} /> <span className="font-medium">{trail.ownerId === 'you' ? 'You' : owner.name}</span></p>
             <div className="flex items-center gap-2">
               {trail_.length > 0 && (
                 <button onClick={goBack} className="h-9 rounded-full border border-line px-3 flex items-center gap-1.5 text-[12px] font-medium text-ink-2 hover:bg-paper whitespace-nowrap" title="Back to where you came from">
@@ -266,7 +270,15 @@ function Detail({ stepId }: { stepId: string }) {
               <button onClick={() => close(null)} className="w-9 h-9 rounded-full border border-line flex items-center justify-center text-ink-2 hover:bg-paper"><Icon name="close" size={13} /></button>
             </div>
           </div>
-          <p className="text-[24px] leading-[33px] tracking-[-0.24px] text-ink">{because}</p>
+          <div className="group/idea relative">
+            <p className="text-[24px] leading-[33px] tracking-[-0.24px] text-ink">{because}</p>
+            {trail.ownerId === 'you' && (
+              <button onClick={() => openIdea({ mode: 'edit', saveId: save.id })} title="Edit the idea"
+                className="absolute -right-2 -top-2 w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center text-ink-2 opacity-0 group-hover/idea:opacity-100 hover:bg-paper transition-opacity">
+                <Icon name="noteEdit" size={16} />
+              </button>
+            )}
+          </div>
           {trail.ownerId !== 'you' && !linkedToOwn && (
             <button onClick={() => makeConnectionFrom(stepId)} className="w-fit flex items-center gap-2 bg-ink text-white rounded-full pl-[18px] pr-5 py-3 text-[14px] font-medium hover:bg-black">
               <Icon name="connect" size={14} /> Make a connection

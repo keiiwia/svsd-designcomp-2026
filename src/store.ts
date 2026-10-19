@@ -88,6 +88,8 @@ export interface TrailsState {
   openIdea: (idea: UIState['idea']) => void
   addIdea: (title: string, thought: string) => string
   updateConnection: (id: string, because: string) => void
+  moveConnectionLabel: (id: string, offset: { x: number; y: number }) => void
+  updateThought: (id: string, text: string) => void
   addLink: (url: string) => void
   placeNextSave: () => boolean
   startWalk: (trailId: string, index?: number) => void
@@ -401,6 +403,10 @@ export const useStore = create<TrailsState>()(
             ui: { ...s.ui, selectedStepId: s.ui.selectedStepId === stepId ? null : s.ui.selectedStepId },
           }
         }),
+      moveConnectionLabel: (id, labelOffset) =>
+        set((s) => (s.connections[id] ? { connections: { ...s.connections, [id]: { ...s.connections[id], labelOffset } } } : {})),
+      updateThought: (id, text) =>
+        set((s) => (s.thoughts[id] && s.thoughts[id].authorId === YOU ? { thoughts: { ...s.thoughts, [id]: { ...s.thoughts[id], text } } } : {})),
       updateConnection: (id, because) =>
         set((s) => (s.connections[id] ? { connections: { ...s.connections, [id]: { ...s.connections[id], because } } } : {})),
 

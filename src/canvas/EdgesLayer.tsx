@@ -9,8 +9,32 @@ import { useDrag } from './drag'
 import { spring, useMotion } from '../lib/motion'
 
 /** A because chip: one click opens it for rewriting (it turns blue as you hover). Enter saves, Escape cancels. */
-function BecauseChip({ id, because, blue, authorId, pos, delay, toStepId }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number; toStepId: string }) {
+function BecauseChip({ id, because, blue, authorId, pos, delay, toStepId, offset }: { id: string; because: string; blue?: boolean; authorId: string; pos: Pt; delay: number; toStepId: string; offset?: Pt }) {
   const update = useStore((s) => s.updateConnection)
+  const moveLabel = useStore((s) => s.moveConnectionLabel)
+  const dragRef = useRef<{ startX: number; startY: number; ox: number; oy: number; moved: boolean } | null>(null)
+  const onChipPointerDown = (e: React.PointerEvent) => {
+    e.stopPropagation()
+    if (editing || e.button !== 0) return
+    const scale = useStore.getState().camera.scale
+    dragRef.current = { startX: e.clientX, startY: e.clientY, ox: offset?.x ?? 0, oy: offset?.y ?? 0, moved: false }
+    const move = (ev: PointerEvent) => {
+      const d = dragRef.current
+      if (!d) return
+      const dx = (ev.clientX - d.startX) / scale, dy = (ev.clientY - d.startY) / scale
+      if (!d.moved && Math.hypot(dx, dy) < 4) return
+      d.moved = true
+      moveLabel(id, { x: d.ox + dx, y: d.oy + dy })
+    }
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      // a click that never moved falls through to onClick (edit / select)
+      window.setTimeout(() => { dragRef.current = null }, 0)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
   const selectStep = useStore((s) => s.selectStep)
   const mine = authorId === 'you'
   const mo = useMotion()
@@ -44,13 +68,14 @@ function BecauseChip({ id, because, blue, authorId, pos, delay, toStepId }: { id
           ? 'absolute flex items-center gap-1.5 bg-blue text-white rounded-[6px] pl-1 pr-2 py-1 text-[11px] font-medium shadow-card cursor-pointer overflow-hidden'
           : 'absolute bg-white border border-line rounded-[6px] px-2 py-1 text-[11px] font-medium text-ink-2 shadow-card cursor-pointer leading-[14px] overflow-hidden'}
       data-mine={mine}
-      style={{ left: pos.x, top: pos.y, zIndex: active ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue || active ? 260 : 150, x: '-50%', y: '-50%',
+      data-chip-drag
+      style={{ left: pos.x + (offset?.x ?? 0), top: pos.y + (offset?.y ?? 0), zIndex: active ? 60 : 15, width: editing ? 320 : 'max-content', maxWidth: editing ? 320 : blue || active ? 260 : 150, x: '-50%', y: '-50%',
         boxShadow: selected && !editing ? '0 0 0 3px rgba(74,98,196,0.25), 0 6px 16px rgba(31,26,20,0.08)' : undefined }}
       title={editing ? undefined : mine ? `${because} · click to rewrite` : `${users[authorId].name}’s words · click the step to branch from it`}
-      onPointerDown={stop}
+      onPointerDown={onChipPointerDown}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
-      onClick={(e) => { stop(e); if (editing) return; if (!mine) { selectStep(toStepId); return } setSelected(true); setEditing(true) }}
+      onClick={(e) => { stop(e); if (editing || dragRef.current?.moved) return; if (!mine) { selectStep(toStepId); return } setSelected(true); setEditing(true) }}
     >
       {!editing && (blue || active) && <Avatar userId={authorId} size={14} />}
       {editing ? (
@@ -161,7 +186,8 @@ export function EdgesLayer({
           )}
         </g>,
       )
-      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} toStepId={c.toStepId} />)
+      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} delay={mo.chipDelay} toStepId={c.toStepId} offset={c.labelOffset} />)
+      if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#c9c5be" strokeWidth={1} strokeDasharray="2 3" />)
     } else {
       // blue curve from the bottom of yours to the spot on theirs
       const s = { x: a.x + a.w / 2, y: a.y + a.h }
@@ -179,7 +205,8 @@ export function EdgesLayer({
           <circle cx={e.x} cy={e.y} r={7} fill="rgba(255,255,255,0.75)" stroke="#4a62c4" strokeWidth={1.4} />
         </g>,
       )
-      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} toStepId={c.toStepId} />)
+      if (showChip) chips.push(<BecauseChip key={c.id} id={c.id} because={c.because} authorId={c.authorId} pos={mid} blue delay={mo.chipDelay + 0.15} toStepId={c.toStepId} offset={c.labelOffset} />)
+      if (showChip && c.labelOffset && Math.hypot(c.labelOffset.x, c.labelOffset.y) > 24) lines.push(<line key={`lead-${c.id}`} x1={mid.x} y1={mid.y} x2={mid.x + c.labelOffset.x} y2={mid.y + c.labelOffset.y} stroke="#4a62c4" strokeOpacity={0.5} strokeWidth={1} strokeDasharray="2 3" />)
     }
   }
 

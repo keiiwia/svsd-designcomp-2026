@@ -17,6 +17,10 @@ const stanceLabel: Record<string, string> = {
 function Bubble({ t, reply, replyTo }: { t: Thought; reply?: boolean; replyTo?: Thought }) {
   const u = users[t.authorId]
   const setDrag = useDrag((s) => s.set)
+  const updateThought = useStore((s) => s.updateThought)
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(t.text)
+  const mine = t.authorId === 'you'
   const onPointerDown = (e: RPE) => {
     if (e.button !== 0) return
     e.preventDefault()
@@ -29,12 +33,31 @@ function Bubble({ t, reply, replyTo }: { t: Thought; reply?: boolean; replyTo?: 
         <p className="text-[10px] text-ink-4 flex items-center gap-1 pl-1">↳ {relation}{replyTo && <span className="text-ink-4"> to {users[replyTo.authorId].name}</span>}</p>
       )}
       <div
-        onPointerDown={onPointerDown}
-        title="Drag this thought onto the canvas"
-        className={clsx('rounded-[12px] px-3.5 py-2.5 flex flex-col gap-1.5 cursor-grab active:cursor-grabbing select-none', t.onCanvas && 'opacity-60')}
+        onPointerDown={editing ? undefined : onPointerDown}
+        title={editing ? undefined : 'Drag this thought onto the canvas'}
+        className={clsx('group/bubble relative rounded-[12px] px-3.5 py-2.5 flex flex-col gap-1.5 select-none', !editing && 'cursor-grab active:cursor-grabbing', t.onCanvas && 'opacity-60')}
         style={{ background: u.noteBg }}
       >
-        <p className="text-[12.5px] leading-[17px] text-ink">{t.text}</p>
+        {editing ? (
+          <textarea
+            autoFocus
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onBlur={() => { if (val.trim()) updateThought(t.id, val.trim()); setEditing(false) }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (val.trim()) updateThought(t.id, val.trim()); setEditing(false) } if (e.key === 'Escape') { setVal(t.text); setEditing(false) } }}
+            onPointerDown={(e) => e.stopPropagation()}
+            rows={2}
+            className="text-[12.5px] leading-[17px] text-ink bg-white/60 rounded-[8px] px-2 py-1 outline-none w-full resize-none"
+          />
+        ) : (
+          <p className="text-[12.5px] leading-[17px] text-ink">{t.text}</p>
+        )}
+        {mine && !editing && (
+          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setVal(t.text); setEditing(true) }} title="Edit"
+            className="absolute right-1.5 top-1.5 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-ink-2 opacity-0 group-hover/bubble:opacity-100 hover:bg-white">
+            <Icon name="noteEdit" size={13} />
+          </button>
+        )}
         <p className="flex items-center gap-1.5 text-[10px] text-ink-3">
           <Avatar userId={t.authorId} size={13} ring={false} />
           <span className="text-ink-2">{t.authorId === 'you' ? 'You' : u.name}</span>
