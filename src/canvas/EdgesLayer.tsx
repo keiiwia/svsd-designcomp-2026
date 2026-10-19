@@ -204,7 +204,9 @@ export function EdgesLayer({
     const liveEnd = dragging?.end === 'to' ? toCanvas(dragging.client) : bTarget
 
     if (!cross) {
-      const mid = { x: (start.x + bTarget.x) / 2, y: (start.y + bTarget.y) / 2 }
+      // the chip sits halfway between the two card edges, not halfway to a spot inside the target card
+      const edgeB = c.anchor ? edgePoint(b, start) : bTarget
+      const mid = { x: (start.x + edgeB.x) / 2, y: (start.y + edgeB.y) / 2 }
       lines.push(
         <motion.line key={c.id} x1={liveStart.x} y1={liveStart.y} x2={liveEnd.x} y2={liveEnd.y} stroke={hot === c.id || dragging ? '#4a62c4' : '#c9c5be'} strokeWidth={hot === c.id || dragging ? 1.5 : 1}
           strokeDasharray={dragging ? '4 4' : undefined}

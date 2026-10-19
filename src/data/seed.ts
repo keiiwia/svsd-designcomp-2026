@@ -79,7 +79,7 @@ export const keiiwiaSteps: Step[] = [
   { id: 'k1', trailId: KEIIWIA_TRAIL, saveId: 'k-poster', index: 1, pos: { x: 24, y: 120 } },
   { id: 'k2', trailId: KEIIWIA_TRAIL, saveId: 'k-dunes', index: 2, pos: { x: 320, y: 40 } },
   { id: 'k3', trailId: KEIIWIA_TRAIL, saveId: 'k-log', index: 3, pos: { x: 770, y: 112 } },
-  { id: 'k4', trailId: KEIIWIA_TRAIL, saveId: 'k-fog', index: 4, pos: { x: 1100, y: 118 } },
+  { id: 'k4', trailId: KEIIWIA_TRAIL, saveId: 'k-fog', index: 4, pos: { x: 1140, y: 118 } },
 ]
 
 export const nearbySteps: Step[] = [
@@ -102,7 +102,7 @@ export const KEIIWIA_BECAUSE =
 export const keiiwiaThoughts: Thought[] = [
   { id: 'th1', stepId: 'k2', authorId: 'keiiwia', text: 'She never once looks back at the camera.', t: 12 },
   { id: 'th2', stepId: 'k2', authorId: 'mira', stance: 'disagrees', text: 'I don’t think it’s still though — the grass is moving the whole time.', t: 41,
-    onCanvas: { x: 780, y: 240 } },
+    onCanvas: { x: 780, y: 280 } },
   { id: 'th3', stepId: 'k2', authorId: 'lena', parentId: 'th2', text: 'Maybe she’s the only thing moving on purpose.' },
   { id: 'th4', stepId: 'k2', authorId: 'jun', stance: 'wonders', text: 'Is the camera the still one? Nobody seems to be holding it.', t: 88 },
   { id: 'th5', stepId: 'k2', authorId: 'kellysu', text: 'jun’s right — I left it on a tripod and walked into the shot.', t: 88, parentId: 'th4' },

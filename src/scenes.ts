@@ -45,7 +45,7 @@ export function loadScene(n: number) {
   // 07 linked: her trail joins your canvas
   const folded = place('s-folded', 800, 56)
   link(skirt, folded, 'same kind of folds')
-  s().addNote(OWN_TRAIL, { x: 40, y: 290 }, 'The people are tiny and the trees are huge.')
+  s().addNote(OWN_TRAIL, { x: 40, y: 334 }, 'The people are tiny and the trees are huge.')
   s().addNote(OWN_TRAIL, { x: 816, y: 300 }, 'Looks soft, but it would cut you.')
   link(skirt, 'k2', 'the red is the only thing moving — everything around it is muted and still.', { x: 0.62, y: 0.42 })
   s().setBranchState(KEIIWIA_TRAIL, 'collapsed')
